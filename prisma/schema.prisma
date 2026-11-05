@@ -37,3 +37,38 @@ model RankingEntry {
   @@unique([setId, playerId])
   @@index([setId, pos, rank])
 }
+
+// ---------- Lineup Setter ----------
+
+/// A league member who connected their Sleeper account. The Sleeper session
+/// token is stored encrypted (AES-256-GCM, key derived from LINEUP_SECRET);
+/// passwords are never stored.
+model LineupSetter {
+  id            String      @id @default(cuid())
+  sleeperUserId String      @unique
+  displayName   String
+  rosterId      Int
+  tokenEnc      String
+  enabled       Boolean     @default(false)
+  tokenOk       Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  runs          LineupRun[]
+}
+
+/// One check of one kickoff window for one member: what changed (if anything).
+model LineupRun {
+  id         String       @id @default(cuid())
+  setterId   String
+  week       Int
+  blockStart DateTime // kickoff time of the window whose lineups dropped
+  status     String // "changed" | "no_change" | "unresolved" | "error"
+  message    String
+  details    Json?
+  seen       Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  setter     LineupSetter @relation(fields: [setterId], references: [id], onDelete: Cascade)
+
+  @@index([setterId, createdAt])
+  @@index([setterId, week, blockStart])
+}

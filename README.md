@@ -10,6 +10,7 @@ A league hub for the **FPL League of Proud Americans**
 | `/` | Opens Power Rankings |
 | `/power-rankings` | All 12 teams ranked by total roster value using the original spreadsheet values (no trade-calculator scaling), with a FWD/MID/DEF/GK breakdown |
 | `/teams/[id]` | Each roster (starters, bench, IR), with ranks and values from the official rankings |
+| `/lineup-setter` | Connect a Sleeper account and switch on automatic lineup changes when team sheets drop |
 | `/draft` | The full draft board |
 | `/rankings` | The official rankings plus anyone else's lists |
 | `/rankings/new` | Create a list, starting from a copy of an existing list, Sleeper's pre-season ADP, this season's total points (league scoring), or blank |
@@ -34,6 +35,37 @@ A league hub for the **FPL League of Proud Americans**
 To edit the official rankings, open them on the site, click **Edit**, and enter
 your `ADMIN_KEY`. Every push to GitHub redeploys automatically, and your
 rankings in the database are left alone.
+
+## Lineup Setter
+
+Members connect their Sleeper account on `/lineup-setter` and switch it **On**.
+About an hour before each kickoff window, when Premier League team sheets are
+published, the site benches any of their starters who aren't in their club's
+starting XI. Each is replaced by the best eligible bench player, in this order:
+A) starting in the same kickoff window, B) projected above 0 in a later game,
+C) any other available player (ties go to the higher projection). Players whose
+games have kicked off are never moved. Each change appears as a notification
+on the page.
+
+**How it works:** team sheets and kickoff times come from Sleeper's public
+`/scores` feed. Lineups are read and saved through Sleeper's *private* GraphQL
+API (`matchup_legs` / `update_matchup_leg`), the same one Sleeper's app uses.
+It's unofficial and could break if Sleeper changes it. Passwords are passed to
+Sleeper once and never stored; only the session token is kept, encrypted with
+`LINEUP_SECRET`.
+
+**Setup (once):**
+
+1. In Vercel, under **Settings → Environment Variables**, add `LINEUP_SECRET` (a
+   long random string, at least 16 characters) and `CRON_SECRET` (another long
+   random string). Then redeploy.
+2. In GitHub, under **Settings → Secrets and variables → Actions**, add a
+   repository secret `CRON_SECRET` with the same value as in Vercel. The
+   workflow in `.github/workflows/lineup-setter.yml` then calls
+   `/api/cron/lineup-setter` every 5 minutes.
+
+Changing `LINEUP_SECRET` later makes saved sign-ins unreadable, so members
+would need to reconnect.
 
 ## Running locally
 
@@ -86,6 +118,8 @@ Trafford is corrupted, so `PLAYER_OVERRIDES` in `src/lib/config.ts` patches it.
 | --- | --- | --- |
 | `DATABASE_URL` / `DATABASE_URL_UNPOOLED` | none | Postgres connection strings (set automatically by Vercel's Neon integration) |
 | `ADMIN_KEY` | none | Admin features are off while this is `change-me` |
+| `LINEUP_SECRET` | none | Encrypts stored Sleeper sign-ins and signs Lineup Setter sessions. Required for Lineup Setter |
+| `CRON_SECRET` | none | Shared secret the scheduler sends to `/api/cron/lineup-setter` |
 | `SLEEPER_LEAGUE_ID` | `1388351489117810688` | Change it when the league rolls over to a new season |
 | `EPL_CLUBS` | 2026-27 clubs | Comma-separated club codes. Sleeper's player pool includes players who left the PL, so the rankings pool is filtered to these clubs. Update each summer (`src/lib/config.ts`). |
 

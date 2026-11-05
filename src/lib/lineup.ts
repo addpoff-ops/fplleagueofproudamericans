@@ -1,0 +1,234 @@
+// Lineup Setter: decide lineup changes once team sheets are announced.
+//
+// Data (all public Sleeper endpoints):
+//   /scores/{sport}/regular/{season}/{week}  kickoff times + announced team sheets
+//                                            (metadata.rosters.{home,away}.players[].is_starter,
+//                                            empty until ~1 hour before kickoff)
+//   /schedule/{sport}/regular/{season}       which clubs play in each game
+//   /v1/projections/{sport}/regular/{season}/{week}  weekly projections
+
+import { getLeague, getPlayers, getRosters, getState, scorePoints, SPORT, type Player } from "./sleeper";
+
+const API = "https://api.sleeper.app";
+
+async function getJson<T>(url: string): Promise<T> {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Sleeper ${url} failed: ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
+// ---------- Games ----------
+
+export interface Game {
+  gameId: string;
+  start: number; // kickoff, ms since epoch
+  status: string; // pre_game | in_game | complete ...
+  home: string; // club abbreviation, e.g. "ARS"
+  away: string;
+  announced: boolean; // team sheets published
+  starters: Set<string>; // Sleeper player IDs in either starting XI
+  inSquad: Set<string>; // everyone on either team sheet (starters + subs)
+}
+
+interface ScoreRow {
+  game_id: string;
+  start_time: string;
+  status: string;
+  metadata?: {
+    rosters?: Record<"home" | "away", { players?: { player_id: string; is_starter: boolean }[] } | null> | null;
+  };
+}
+interface ScheduleRow {
+  game_id: string;
+  week: number;
+  home: { abbr: string };
+  away: { abbr: string };
+}
+
+export async function getWeekGames(season: string, week: number): Promise<Game[]> {
+  const [scores, schedule] = await Promise.all([
+    getJson<ScoreRow[]>(`${API}/scores/${SPORT}/regular/${season}/${week}`),
+    getJson<ScheduleRow[]>(`${API}/schedule/${SPORT}/regular/${season}`),
+  ]);
+  const clubs = new Map(schedule.filter((g) => g.week === week).map((g) => [g.game_id, g]));
+  return scores.flatMap((s) => {
+    const c = clubs.get(s.game_id);
+    if (!c) return [];
+    const sides = [s.metadata?.rosters?.home, s.metadata?.rosters?.away];
+    const players = sides.flatMap((side) => side?.players ?? []);
+    return [
+      {
+        gameId: s.game_id,
+        start: Number(s.start_time),
+        status: s.status,
+        home: c.home.abbr,
+        away: c.away.abbr,
+        announced: sides.every((side) => (side?.players?.length ?? 0) > 0),
+        starters: new Set(players.filter((p) => p.is_starter).map((p) => p.player_id)),
+        inSquad: new Set(players.map((p) => p.player_id)),
+      },
+    ];
+  });
+}
+
+/** Weekly projected points under the league's scoring, by player ID. */
+export async function getWeekProjections(season: string, week: number, scoring: Record<string, number>) {
+  const raw = await getJson<Record<string, Record<string, number>> | null>(
+    `${API}/v1/projections/${SPORT}/regular/${season}/${week}`,
+  );
+  const out = new Map<string, number>();
+  for (const [id, stats] of Object.entries(raw ?? {})) out.set(id, scorePoints(stats, scoring));
+  return out;
+}
+
+// ---------- Kickoff windows ----------
+
+/** Games grouped by kickoff time. A window is actionable once every game in it
+ *  has announced team sheets and none has kicked off yet. */
+export function actionableWindows(games: Game[], now = Date.now()) {
+  const byStart = new Map<number, Game[]>();
+  for (const g of games) byStart.set(g.start, [...(byStart.get(g.start) ?? []), g]);
+  return [...byStart.entries()]
+    .filter(([start, gs]) => start > now && gs.every((g) => g.announced && g.status === "pre_game"))
+    .sort((a, b) => a[0] - b[0])
+    .map(([start, gs]) => ({ start, games: gs }));
+}
+
+// ---------- Choosing replacements ----------
+
+/** Which player positions can fill each lineup slot. Multi-position
+ *  eligibility is off in our league, so a player has exactly one position. */
+const SLOT_ELIGIBLE: Record<string, string[]> = {
+  F: ["F"],
+  M: ["M"],
+  D: ["D"],
+  GK: ["GK"],
+  FM_FLEX: ["F", "M"],
+  MD_FLEX: ["M", "D"],
+  FMD_FLEX: ["F", "M", "D"],
+};
+
+export type Priority = "A" | "B" | "C";
+export const PRIORITY_LABEL: Record<Priority, string> = {
+  A: "starting in the same kickoff window",
+  B: "projected above 0 in a later game",
+  C: "best other available player",
+};
+
+export interface Swap {
+  slot: string;
+  out: string;
+  in: string;
+  priority: Priority;
+  proj: number;
+}
+
+export interface Plan {
+  windowStart: number;
+  newStarters: string[];
+  swaps: Swap[];
+  unresolved: { slot: string; out: string }[]; // non-starters with no valid replacement
+}
+
+interface PlanInput {
+  slots: string[]; // lineup slots in order (no BN/IR)
+  starters: string[]; // current starters, same order as slots ("0" = empty)
+  players: string[]; // whole roster
+  reserve: string[]; // injured reserve (can't start)
+  games: Game[];
+  window: { start: number; games: Game[] };
+  proj: Map<string, number>;
+  playerInfo: Record<string, Player>;
+  now?: number;
+}
+
+export function planWindow(i: PlanInput): Plan {
+  const now = i.now ?? Date.now();
+  const gameOfClub = new Map<string, Game>();
+  for (const g of i.games) {
+    gameOfClub.set(g.home, g);
+    gameOfClub.set(g.away, g);
+  }
+  const gameOf = (id: string) => {
+    const club = i.playerInfo[id]?.team;
+    return club ? gameOfClub.get(club) : undefined;
+  };
+  const windowIds = new Set(i.window.games.map((g) => g.gameId));
+  const inWindow = (id: string) => {
+    const g = gameOf(id);
+    return !!g && windowIds.has(g.gameId);
+  };
+  // Confirmed not starting: their game's team sheet is out and they're not in the XI.
+  const confirmedOut = (id: string) => {
+    const g = gameOf(id);
+    return !!g && g.announced && !g.starters.has(id);
+  };
+  // Locked: their game has kicked off (the league's bench lock).
+  const locked = (id: string) => {
+    const g = gameOf(id);
+    return !!g && (g.start <= now || g.status !== "pre_game");
+  };
+
+  const starters = [...i.starters];
+  const onField = new Set(starters.filter((s) => s && s !== "0"));
+  const reserve = new Set(i.reserve);
+  const bench = new Set(i.players.filter((p) => !onField.has(p) && !reserve.has(p)));
+
+  // Starters in this window who aren't in their club's starting XI.
+  const needs = i.slots
+    .map((slot, idx) => ({ slot, idx, out: starters[idx] }))
+    .filter((n) => n.out && n.out !== "0" && inWindow(n.out) && confirmedOut(n.out))
+    // Fill single-position slots first, then the most restrictive flex slots.
+    .sort((a, b) => (SLOT_ELIGIBLE[a.slot]?.length ?? 9) - (SLOT_ELIGIBLE[b.slot]?.length ?? 9));
+
+  const priorityOf = (id: string): Priority | null => {
+    const g = gameOf(id);
+    if (!g || locked(id) || confirmedOut(id)) return null; // no game, already started, or confirmed benched
+    if (windowIds.has(g.gameId) && g.starters.has(id)) return "A";
+    if (g.start > i.window.start && (i.proj.get(id) ?? 0) > 0) return "B";
+    return "C";
+  };
+
+  const swaps: Swap[] = [];
+  const unresolved: Plan["unresolved"] = [];
+  for (const n of needs) {
+    const eligible = SLOT_ELIGIBLE[n.slot] ?? [];
+    const best = [...bench]
+      .filter((id) => eligible.includes(i.playerInfo[id]?.pos ?? ""))
+      .map((id) => ({ id, pr: priorityOf(id), proj: i.proj.get(id) ?? 0 }))
+      .filter((c): c is { id: string; pr: Priority; proj: number } => c.pr !== null)
+      .sort((a, b) => a.pr.localeCompare(b.pr) || b.proj - a.proj)[0];
+    if (!best) {
+      unresolved.push({ slot: n.slot, out: n.out });
+      continue;
+    }
+    starters[n.idx] = best.id;
+    bench.delete(best.id);
+    bench.add(n.out);
+    swaps.push({ slot: n.slot, out: n.out, in: best.id, priority: best.pr, proj: best.proj });
+  }
+  return { windowStart: i.window.start, newStarters: starters, swaps, unresolved };
+}
+
+// ---------- League context ----------
+
+/** Everything the planner needs that's the same for every member. */
+export async function loadContext(now = Date.now()) {
+  const [state, league] = await Promise.all([getState(), getLeague()]);
+  const week = state.week;
+  const games = await getWeekGames(league.season, week);
+  const windows = actionableWindows(games, now);
+  return { league, week, games, windows };
+}
+
+export async function loadPlannerData(season: string, week: number, scoring: Record<string, number>) {
+  const [proj, players, rosters] = await Promise.all([
+    getWeekProjections(season, week, scoring),
+    getPlayers(),
+    getRosters(),
+  ]);
+  return { proj, players, rosters };
+}
+
+export const lineupSlots = (rosterPositions: string[]) =>
+  rosterPositions.filter((p) => p !== "BN" && p !== "IR" && p !== "TAXI");
