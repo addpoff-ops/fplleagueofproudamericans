@@ -26,7 +26,10 @@ A league hub for the **FPL League of Proud Americans**
    value. Keep it private; it's your master edit key.
 4. Deploy (or redeploy). The build creates the database tables, and on the first
    deploy it also loads the official rankings from
-   `data/official-rankings-2026-27.json`.
+   `data/official-rankings-2026-27.json`. Every deploy then appends any player at
+   a current Premier League club who isn't in the official rankings yet to the
+   end of their position, as tier Z (`scripts/complete-official.ts`). Players
+   already ranked are never moved.
 
 To edit the official rankings, open them on the site, click **Edit**, and enter
 your `ADMIN_KEY`. Every push to GitHub redeploys automatically, and your
