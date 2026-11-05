@@ -119,6 +119,27 @@ export const getState = () => get<SleeperState>(`/state/${SPORT}`);
 export const getDraftPicks = (draftId: string) =>
   get<SleeperDraftPick[]>(`/draft/${draftId}/picks`, 3600);
 
+type StatLine = Record<string, number>;
+
+/** Season-to-date stat totals per player, e.g. { pos_m_g: 3, pos_m_kp: 12, ... }. */
+export const getSeasonStats = async (season: string) =>
+  (await get<Record<string, StatLine> | null>(`/stats/${SPORT}/regular/${season}`, 3600)) ?? {};
+
+/** Pre-season projections; `adp_std` is the ADP shown in the Sleeper app. */
+export const getProjections = async (season: string) =>
+  (await get<Record<string, StatLine> | null>(`/projections/${SPORT}/regular/${season}`, 3600)) ?? {};
+
+/**
+ * A player's fantasy points under a league's scoring settings. Sleeper's stat
+ * keys (pos_f_g, pos_d_cs, ...) match the scoring_settings keys one-to-one,
+ * which is how the Sleeper app computes a player's points in a league.
+ */
+export function scorePoints(stats: StatLine, scoring: Record<string, number>) {
+  let pts = 0;
+  for (const [k, w] of Object.entries(scoring)) pts += (stats[k] ?? 0) * w;
+  return Math.round(pts * 100) / 100;
+}
+
 // The full player dump is ~2.3MB, above Next's 2MB fetch-cache limit, so we
 // slim it down and keep it in memory instead. Sleeper asks that this endpoint
 // be called at most once a day.

@@ -53,8 +53,14 @@ export default function NewRankingForm({ sets }: { sets: { slug: string; name: s
               Copy “{s.name}” by {s.author}
             </option>
           ))}
+          <option value="sleeper-adp">Use Sleeper Pre-Season ADP</option>
+          <option value="total-points">Use Total Points</option>
           <option value="blank">Blank list</option>
         </select>
+        <span className="text-xs text-zinc-500">
+          Sleeper ADP and Total Points (this season, using our league&apos;s scoring) set the order within each position. Players keep their position from the official list.
+          Tiers are copied rank-for-rank from the official list, so you can adjust from there.
+        </span>
       </label>
       {showAdmin ? (
         <label className="grid gap-1 text-sm">

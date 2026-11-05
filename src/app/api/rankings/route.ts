@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashKey, newEditKey, slugify } from "@/lib/keys";
-import { getEntries, listRankingSets } from "@/lib/rankings";
+import { getEntries, listRankingSets, seedFromAdp, seedFromPoints } from "@/lib/rankings";
 
 export async function GET() {
   return NextResponse.json(await listRankingSets());
@@ -19,9 +19,12 @@ export async function POST(req: Request) {
   const isOfficial = Boolean(admin && admin !== "change-me" && body?.adminKey === admin);
   if (body?.adminKey && !isOfficial) return NextResponse.json({ error: "Admin key is incorrect." }, { status: 403 });
 
-  // Start from a copy of an existing list (the official one by default), or blank.
+  // Start from a copy of an existing list (the official one by default),
+  // Sleeper's pre-season ADP, this season's total points, or blank.
   let seed: { playerId: string; pos: string; rank: number; tier: string }[] = [];
-  if (startFrom === "official") seed = (await getEntries({ isOfficial: true })) ?? [];
+  if (startFrom === "sleeper-adp") seed = await seedFromAdp();
+  else if (startFrom === "total-points") seed = await seedFromPoints();
+  else if (startFrom === "official") seed = (await getEntries({ isOfficial: true })) ?? [];
   else if (startFrom !== "blank") seed = (await getEntries({ slug: startFrom })) ?? [];
 
   const editKey = newEditKey();
