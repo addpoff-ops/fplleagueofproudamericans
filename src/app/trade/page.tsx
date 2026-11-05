@@ -15,7 +15,6 @@ export default async function TradePage({ searchParams }: { searchParams: Promis
     <>
       <PageTitle
         title="Trade Calculator"
-        sub="Values come from each player's position and tier in the rankings list you pick, using the original spreadsheet values (e.g. FWD S = 580, MID S = 600, DEF S = 450, GK S = 325)."
       />
       {sets.length === 0 ? (
         <div className="card p-8 text-center text-sm text-zinc-500">
