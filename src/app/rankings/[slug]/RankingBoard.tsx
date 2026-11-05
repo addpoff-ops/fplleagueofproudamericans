@@ -299,7 +299,7 @@ export default function RankingBoard({ set, initialSections, pool, owners }: Pro
               <th className="th w-20">Tier</th>
               <th className="th hidden sm:table-cell">Owner</th>
               <th className="th text-right">Value</th>
-              {editing && <th className="th w-24" />}
+              {editing && <th className="th w-16" />}
             </tr>
           </thead>
           <tbody>
@@ -377,7 +377,6 @@ export default function RankingBoard({ set, initialSections, pool, owners }: Pro
                       <td className="td whitespace-nowrap text-right">
                         <button className="px-1 text-zinc-400 hover:text-foreground" title="Up" onClick={() => move(r.i, r.i - 1)}>↑</button>
                         <button className="px-1 text-zinc-400 hover:text-foreground" title="Down" onClick={() => move(r.i, r.i + 1)}>↓</button>
-                        <button className="px-1 text-zinc-400 hover:text-rose-600" title="Remove" onClick={() => setList(list.filter((_, j) => j !== r.i))}>✕</button>
                       </td>
                     )}
                   </tr>

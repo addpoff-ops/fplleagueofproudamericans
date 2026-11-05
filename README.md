@@ -13,7 +13,7 @@ A league hub for the **FPL League of Proud Americans**
 | `/draft` | The full draft board |
 | `/rankings` | The official rankings plus anyone else's lists |
 | `/rankings/new` | Create a list, starting from a copy of an existing list or blank |
-| `/rankings/[slug]` | A list split into FWD / MID / DEF / GK sections with tiers. Edit with drag-and-drop, rank numbers, tier pickers, and add/remove |
+| `/rankings/[slug]` | A list split into FWD / MID / DEF / GK sections with tiers. Edit with drag-and-drop, rank numbers, tier pickers, and adding players |
 | `/trade` | Trade calculator driven by any rankings list, with "to even it up" suggestions |
 
 ## Deploying to Vercel (no terminal needed)
