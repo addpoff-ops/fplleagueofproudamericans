@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 const NAV = [
   { href: "/", label: "Standings" },
-  { href: "/transactions", label: "Transactions" },
+  { href: "/power-rankings", label: "Power Rankings" },
   { href: "/draft", label: "Draft" },
   { href: "/rankings", label: "Rankings" },
   { href: "/trade", label: "Trade Calculator" },

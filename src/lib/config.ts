@@ -10,3 +10,9 @@ const DEFAULT_CLUBS_2026_27 = [
 export const EPL_CLUBS = new Set(
   process.env.EPL_CLUBS ? process.env.EPL_CLUBS.split(",").map((s) => s.trim().toUpperCase()) : DEFAULT_CLUBS_2026_27,
 );
+
+// Sleeper occasionally has a corrupted player record. These patch the fields we
+// use, keyed by Sleeper player ID (confirmed against the draft results).
+export const PLAYER_OVERRIDES: Record<string, { name: string; positions: string[]; team: string }> = {
+  "1031": { name: "James Trafford", positions: ["GK"], team: "LEE" }, // Sleeper record holds Nottingham Forest club data
+};

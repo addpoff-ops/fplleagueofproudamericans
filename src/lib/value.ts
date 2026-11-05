@@ -1,8 +1,12 @@
-// Player trade values. Pure functions, safe to import from client components.
+// Player values. Pure functions, safe to import from client components.
 //
-// Built from the "Ranking Multiplier" values in the FWD/MID/DEF/GK (A) sheets
-// of FPL_26-27_Analysis_Sheet.xlsx:
-//   - Z keeps the sheet's original value for that position.
+// Two scales, both keyed by position + tier:
+//   SHEET_TIER_VALUES: the original sheet values, used by Power Rankings.
+//   TIER_VALUES: trade values (trade calculator, rankings pages, team pages).
+//
+// Trade values are built from the "Ranking Multiplier" values in the
+// FWD/MID/DEF/GK (A) sheets of FPL_26-27_Analysis_Sheet.xlsx:
+//   - Z keeps the sheet's original value for that position (DEF Z is 220).
 //   - F is the sheet's original F value for that position.
 //   - Every tier above F is worth TIER_GROWTH[pos] times the one below it
 //     (FWD 1.78x, MID 1.7x, DEF 1.57x, GK 1.5x).
@@ -18,16 +22,28 @@ export type Tier = (typeof TIERS)[number];
 /** Multiplier between consecutive tiers from F up to S, per position. */
 export const TIER_GROWTH: Record<Pos, number> = { F: 1.78, M: 1.7, D: 1.57, GK: 1.5 };
 
-/** Original per-position values from the (A) sheets. */
-const SHEET_VALUES = {
-  F: { Z: 180, F: 208 },
-  M: { Z: 200, F: 250 },
-  D: { Z: 220, F: 220 },
-  GK: { Z: 200, F: 200 },
-} as const;
+/**
+ * The original "Ranking Multiplier" values from the FWD/MID/DEF/GK (A) sheets,
+ * unchanged. Used as-is by the Power Rankings page. (The sheet has no GK F
+ * tier, so GK F uses 200, the same as the sheet's GK E and Z.)
+ */
+export const SHEET_TIER_VALUES: Record<Pos, Record<Tier, number>> = {
+  F: { S: 580, A: 515, B: 435, C: 355, D: 280, E: 242, F: 208, Z: 180 },
+  M: { S: 600, A: 512, B: 450, C: 390, D: 345, E: 320, F: 250, Z: 200 },
+  D: { S: 450, A: 420, B: 365, C: 320, D: 278, E: 248, F: 220, Z: 195 },
+  GK: { S: 325, A: 300, B: 265, C: 242, D: 215, E: 200, F: 200, Z: 200 },
+};
+
+/** Trade-value starting points: the sheet's F value, and Z (DEF Z raised to 220). */
+const TRADE_BASE: Record<Pos, { Z: number; F: number }> = {
+  F: { Z: SHEET_TIER_VALUES.F.Z, F: SHEET_TIER_VALUES.F.F },
+  M: { Z: SHEET_TIER_VALUES.M.Z, F: SHEET_TIER_VALUES.M.F },
+  D: { Z: 220, F: SHEET_TIER_VALUES.D.F },
+  GK: { Z: SHEET_TIER_VALUES.GK.Z, F: SHEET_TIER_VALUES.GK.F },
+};
 
 function buildScale(pos: Pos): Record<Tier, number> {
-  const { Z, F } = SHEET_VALUES[pos];
+  const { Z, F } = TRADE_BASE[pos];
   const up = ["F", "E", "D", "C", "B", "A", "S"] as const; // F → S, ascending
   const scale = { Z } as Record<Tier, number>;
   up.forEach((t, i) => (scale[t] = Math.round(F * TIER_GROWTH[pos] ** i)));

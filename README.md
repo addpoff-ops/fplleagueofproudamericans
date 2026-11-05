@@ -8,11 +8,11 @@ A league hub for the **FPL League of Proud Americans**
 | Page | What it does |
 | --- | --- |
 | `/` Standings | Live table from Sleeper: record, PF/PA, max PF, last-5 form, playoff line |
+| `/power-rankings` | All 12 teams ranked by total roster value using the original spreadsheet values (no trade-calculator scaling), with a FWD/MID/DEF/GK breakdown |
 | `/teams/[id]` | Each roster (starters, bench, IR), with ranks and values from the official rankings |
-| `/transactions` | Every completed trade, waiver, and free-agent move this season |
 | `/draft` | The full draft board |
 | `/rankings` | The official rankings plus anyone else's lists |
-| `/rankings/new` | Create a list, starting from Sleeper's order, a copy of another list, or blank |
+| `/rankings/new` | Create a list, starting from a copy of an existing list or blank |
 | `/rankings/[slug]` | A list split into FWD / MID / DEF / GK sections with tiers. Edit with drag-and-drop, rank numbers, tier pickers, and add/remove |
 | `/trade` | Trade calculator driven by any rankings list, with "to even it up" suggestions |
 
@@ -74,8 +74,8 @@ best-first and weights the i-th player by `0.85^i`, so a pile of depth pieces
 doesn't automatically beat one star. Within 5% counts as fair.
 
 The official list comes from `data/official-rankings-2026-27.json` (built from
-the (A) sheets, with names matched to Sleeper IDs). James Trafford (GK, Leeds) isn't in Sleeper's player
-database, so he was skipped.
+the (A) sheets, with names matched to Sleeper IDs). Sleeper's record for James
+Trafford is corrupted, so `PLAYER_OVERRIDES` in `src/lib/config.ts` patches it.
 
 ## Configuration
 

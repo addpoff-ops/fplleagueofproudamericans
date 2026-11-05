@@ -1,6 +1,8 @@
 // Thin client for the public Sleeper API (no auth required).
 // Docs: https://docs.sleeper.com
 
+import { PLAYER_OVERRIDES } from "./config";
+
 export const LEAGUE_ID = process.env.SLEEPER_LEAGUE_ID ?? "1388351489117810688";
 export const SPORT = "clubsoccer:epl";
 const BASE = "https://api.sleeper.app/v1";
@@ -65,20 +67,6 @@ export interface SleeperRoster {
   };
 }
 
-export interface SleeperTransaction {
-  transaction_id: string;
-  type: "trade" | "waiver" | "free_agent" | "commissioner";
-  status: "complete" | "failed" | "pending";
-  created: number;
-  leg: number;
-  creator: string;
-  roster_ids: number[];
-  adds: Record<string, number> | null;
-  drops: Record<string, number> | null;
-  settings: { waiver_bid?: number } | null;
-  draft_picks: unknown[];
-}
-
 export interface SleeperDraftPick {
   pick_no: number;
   round: number;
@@ -130,8 +118,6 @@ export const getRosters = (id = LEAGUE_ID) => get<SleeperRoster[]>(`/league/${id
 export const getState = () => get<SleeperState>(`/state/${SPORT}`);
 export const getDraftPicks = (draftId: string) =>
   get<SleeperDraftPick[]>(`/draft/${draftId}/picks`, 3600);
-export const getTransactions = async (leg: number, id = LEAGUE_ID) =>
-  (await get<SleeperTransaction[] | null>(`/league/${id}/transactions/${leg}`)) ?? [];
 
 // The full player dump is ~2.3MB, above Next's 2MB fetch-cache limit, so we
 // slim it down and keep it in memory instead. Sleeper asks that this endpoint
@@ -158,6 +144,9 @@ export async function getPlayers(): Promise<Record<string, Player>> {
       age: p.age ?? null,
       searchRank: p.search_rank ?? null,
     };
+  }
+  for (const [id, o] of Object.entries(PLAYER_OVERRIDES)) {
+    data[id] = { ...(data[id] ?? { injury: null, age: null, searchRank: null }), id, name: o.name, pos: o.positions[0], positions: o.positions, team: o.team };
   }
   playerCache = { at: Date.now(), data };
   return data;
