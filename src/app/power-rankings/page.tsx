@@ -46,6 +46,9 @@ export default async function PowerRankingsPage() {
     .sort((a, b) => b.total - a.total);
 
   const max = Math.max(1, ...rows.map((r) => r.total));
+
+  // Each team's rank (1-12) at each position: 1 = most value. Ties share a rank.
+  const posRank = (pos: Pos, value: number) => 1 + rows.filter((r) => r.byPos[pos] > value).length;
   const standing = new Map(teams.map((t, i) => [t.rosterId, i + 1]));
 
   return (
@@ -77,7 +80,7 @@ export default async function PowerRankingsPage() {
                 <th className="th w-10">#</th>
                 <th className="th">Team</th>
                 <th className="th text-right">Total</th>
-                <th className="th hidden w-1/4 md:table-cell" />
+                <th className="th hidden w-1/4 md:table-cell">Rank by position</th>
                 {COLS.map((p) => (
                   <th key={p} className="th hidden text-right sm:table-cell">
                     {POSITION_LABEL[p]}
@@ -106,15 +109,23 @@ export default async function PowerRankingsPage() {
                     <td className="td text-right text-base font-bold tabular-nums">{r.total.toLocaleString()}</td>
                     <td className="td hidden md:table-cell">
                       {/* Stacked bar: share of the top team's total, split by position */}
-                      <div className="flex h-2.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800" title="FWD / MID / DEF / GK">
+                      <div className="flex h-5 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800">
                         {COLS.map((p) => (
-                          <div key={p} className={BAR_COLORS[p]} style={{ width: `${(r.byPos[p] / max) * 100}%` }} />
+                          <div
+                            key={p}
+                            className={`flex min-w-5 items-center justify-center text-[11px] font-bold text-zinc-900/80 ${BAR_COLORS[p]}`}
+                            style={{ width: `${(r.byPos[p] / max) * 100}%` }}
+                            title={`${POSITION_LABEL[p]}: ${r.byPos[p].toLocaleString()} pts, ranked ${posRank(p, r.byPos[p])} of ${rows.length}`}
+                          >
+                            {posRank(p, r.byPos[p])}
+                          </div>
                         ))}
                       </div>
                     </td>
                     {COLS.map((p) => (
                       <td key={p} className="td hidden text-right tabular-nums text-zinc-600 sm:table-cell dark:text-zinc-400">
-                        {r.byPos[p].toLocaleString()}
+                        {r.byPos[p].toLocaleString()}{" "}
+                        <span className="text-xs text-zinc-400">({posRank(p, r.byPos[p])})</span>
                       </td>
                     ))}
                     <td className="td hidden text-right text-xs text-zinc-500 lg:table-cell">
