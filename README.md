@@ -7,7 +7,7 @@ A league hub for the **FPL League of Proud Americans**
 
 | Page | What it does |
 | --- | --- |
-| `/` Standings | Live table from Sleeper: record, PF/PA, max PF, last-5 form, playoff line |
+| `/` | Opens Power Rankings |
 | `/power-rankings` | All 12 teams ranked by total roster value using the original spreadsheet values (no trade-calculator scaling), with a FWD/MID/DEF/GK breakdown |
 | `/teams/[id]` | Each roster (starters, bench, IR), with ranks and values from the official rankings |
 | `/draft` | The full draft board |
