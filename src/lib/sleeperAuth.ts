@@ -31,36 +31,6 @@ async function gql<T>(token: string | null, operationName: string, query: string
   return body.data as T;
 }
 
-export type LoginResult =
-  | { ok: true; token: string }
-  | { ok: false; reason: "needs_code" | "captcha" | "bad_credentials" | "other"; message: string };
-
-/** Username/email/phone + password → session token. The password is not kept. */
-export async function login(identifier: string, password: string): Promise<LoginResult> {
-  try {
-    const d = await gql<{ login: { token: string } | null }>(
-      null,
-      "login",
-      `query login($email_or_phone_or_username: String!, $password: String!) {
-        login(email_or_phone_or_username: $email_or_phone_or_username, password: $password) { token }
-      }`,
-      { email_or_phone_or_username: identifier, password },
-    );
-    if (d.login?.token) return { ok: true, token: d.login.token };
-    return { ok: false, reason: "bad_credentials", message: "Sleeper didn't accept that username and password." };
-  } catch (e) {
-    const codes = (e as { codes?: string[] }).codes ?? [];
-    const msg = e instanceof Error ? e.message : String(e);
-    if (codes.includes("code_verification_required"))
-      return { ok: false, reason: "needs_code", message: "Sleeper wants a one-time code for this sign-in." };
-    if (/captcha/i.test(msg) || codes.some((c) => /captcha/i.test(c)))
-      return { ok: false, reason: "captcha", message: "Sleeper asked for a captcha." };
-    if (/password|credential|not found|invalid/i.test(msg))
-      return { ok: false, reason: "bad_credentials", message: "Sleeper didn't accept that username and password." };
-    return { ok: false, reason: "other", message: msg };
-  }
-}
-
 export async function me(token: string) {
   const d = await gql<{ me: { user_id: string; display_name: string } | null }>(
     token,

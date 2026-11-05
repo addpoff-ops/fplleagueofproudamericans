@@ -64,8 +64,8 @@ export default function LineupSetterClient({ setter, runs, priorities }: Props) 
           <p>
             Sleeper has no official way for other sites to change lineups. This uses the same private connection
             Sleeper&apos;s own app uses, so it could stop working if Sleeper changes their app, and it may go against
-            Sleeper&apos;s terms. Your password is sent to Sleeper once and never saved; only an encrypted sign-in token is
-            stored. You can disconnect at any time, which deletes it.
+            Sleeper&apos;s terms. The site never sees your Sleeper password; only your sign-in token is stored, encrypted.
+            You can disconnect at any time, which deletes it.
           </p>
         </div>
       </aside>
@@ -75,7 +75,6 @@ export default function LineupSetterClient({ setter, runs, priorities }: Props) 
 
 function ConnectForm() {
   const router = useRouter();
-  const [mode, setMode] = useState<"password" | "token">("password");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agree, setAgree] = useState(false);
@@ -83,7 +82,7 @@ function ConnectForm() {
   const bookmarklet = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
     bookmarklet.current?.setAttribute("href", BOOKMARKLET);
-  }, [mode]);
+  }, []);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -99,7 +98,6 @@ function ConnectForm() {
     setBusy(false);
     if (!res.ok) {
       setError(data.error ?? "Something went wrong.");
-      if (data.reason === "needs_code" || data.reason === "captcha") setMode("token");
       return;
     }
     router.refresh();
@@ -111,58 +109,27 @@ function ConnectForm() {
         <h2 className="font-semibold">Connect your Sleeper account</h2>
         <p className="mt-1 text-sm text-zinc-500">This confirms you manage a team in this league and lets the site set your lineup.</p>
       </div>
-      <div className="flex gap-1 rounded-lg border border-zinc-200 p-1 text-sm dark:border-zinc-800">
-        {(["password", "token"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setMode(m)}
-            className={`flex-1 rounded-md px-3 py-1.5 ${mode === m ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : "text-zinc-600 dark:text-zinc-400"}`}
+      <ol className="list-decimal space-y-1 pl-4 text-sm text-zinc-600 dark:text-zinc-400">
+        <li>
+          On a computer, drag this button to your bookmarks bar:{" "}
+          <a
+            ref={bookmarklet}
+            onClick={(e) => e.preventDefault()}
+            className="inline-block rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white"
           >
-            {m === "password" ? "Username & password" : "Sign-in token"}
-          </button>
-        ))}
-      </div>
-
-      {mode === "password" ? (
-        <>
-          <label className="grid gap-1 text-sm">
-            <span className="font-medium">Sleeper username, email or phone</span>
-            <input name="identifier" required autoComplete="username" className="input" />
-          </label>
-          <label className="grid gap-1 text-sm">
-            <span className="font-medium">Sleeper password</span>
-            <input name="password" type="password" required autoComplete="current-password" className="input" />
-          </label>
-          <p className="text-xs text-zinc-500">
-            If Sleeper asks for a one-time code or a captcha, use the &quot;Sign-in token&quot; option instead.
-          </p>
-        </>
-      ) : (
-        <>
-          <ol className="list-decimal space-y-1 pl-4 text-sm text-zinc-600 dark:text-zinc-400">
-            <li>
-              On a computer, drag this button to your bookmarks bar:{" "}
-              <a
-                ref={bookmarklet}
-                onClick={(e) => e.preventDefault()}
-                className="inline-block rounded-md bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white"
-              >
-                Copy Sleeper token
-              </a>
-            </li>
-            <li>
-              Open <b>sleeper.com/leagues</b> and sign in as usual.
-            </li>
-            <li>Click the bookmark. It copies your sign-in token.</li>
-            <li>Paste it below.</li>
-          </ol>
-          <label className="grid gap-1 text-sm">
-            <span className="font-medium">Sleeper sign-in token</span>
-            <textarea name="token" required rows={3} className="input font-mono text-xs" />
-          </label>
-        </>
-      )}
+            Copy Sleeper token
+          </a>
+        </li>
+        <li>
+          Open <b>sleeper.com/leagues</b> and sign in as usual.
+        </li>
+        <li>Click the bookmark. It copies your sign-in token.</li>
+        <li>Paste it below.</li>
+      </ol>
+      <label className="grid gap-1 text-sm">
+        <span className="font-medium">Sleeper sign-in token</span>
+        <textarea name="token" required rows={3} className="input font-mono text-xs" />
+      </label>
 
       <label className="flex items-start gap-2 text-sm">
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />

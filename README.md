@@ -50,9 +50,10 @@ on the page.
 **How it works:** team sheets and kickoff times come from Sleeper's public
 `/scores` feed. Lineups are read and saved through Sleeper's *private* GraphQL
 API (`matchup_legs` / `update_matchup_leg`), the same one Sleeper's app uses.
-It's unofficial and could break if Sleeper changes it. Passwords are passed to
-Sleeper once and never stored; only the session token is kept, encrypted with
-`LINEUP_SECRET`.
+It's unofficial and could break if Sleeper changes it. Members connect by
+pasting their Sleeper session token (a bookmark button on the page copies it
+from sleeper.com); the site never sees their password. The token is stored
+encrypted with `LINEUP_SECRET`.
 
 **Setup (once):**
 
