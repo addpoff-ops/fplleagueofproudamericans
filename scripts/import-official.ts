@@ -2,10 +2,11 @@
 // sheets of FPL_26-27_Analysis_Sheet.xlsx, with names matched to Sleeper player
 // IDs) and makes it the site's official rankings.
 //
-//   npm run import:official
+//   npm run import:official            # always creates a fresh official list
+//   tsx scripts/import-official.ts --if-empty   # only if no official list exists
 //
-// Prints a private edit link. After this, edit the rankings on the website;
-// re-running the script creates a fresh official list.
+// The deploy build runs the --if-empty form, so a new site starts with these
+// rankings. After that, edit them on the website (Edit button + ADMIN_KEY).
 import { readFileSync } from "fs";
 import { PrismaClient } from "@prisma/client";
 import { hashKey, newEditKey, slugify } from "../src/lib/keys";
@@ -19,6 +20,11 @@ interface Data {
 
 async function main() {
   const prisma = new PrismaClient();
+  if (process.argv.includes("--if-empty") && (await prisma.rankingSet.count({ where: { isOfficial: true } })) > 0) {
+    console.log("Official rankings already exist, skipping import.");
+    await prisma.$disconnect();
+    return;
+  }
   const data: Data = JSON.parse(readFileSync(new URL("../data/official-rankings-2026-27.json", import.meta.url), "utf8"));
   const editKey = newEditKey();
   const entries = Object.entries(data.positions).flatMap(([pos, list]) =>
@@ -39,7 +45,7 @@ async function main() {
     });
   });
   console.log(`Imported ${entries.length} players into "${set.name}".`);
-  console.log(`Edit link (keep private): /rankings/${set.slug}?key=${editKey}`);
+  console.log(`Edit with your ADMIN_KEY, or this private link: /rankings/${set.slug}?key=${editKey}`);
   await prisma.$disconnect();
 }
 

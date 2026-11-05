@@ -16,19 +16,34 @@ A league hub for the **FPL League of Proud Americans**
 | `/rankings/[slug]` | A list split into FWD / MID / DEF / GK sections with tiers. Edit with drag-and-drop, rank numbers, tier pickers, and add/remove |
 | `/trade` | Trade calculator driven by any rankings list, with "to even it up" suggestions |
 
-## Getting started
+## Deploying to Vercel (no terminal needed)
+
+1. Sign in at [vercel.com](https://vercel.com) with GitHub, click **Add New → Project**,
+   and import this repository. Don't deploy yet.
+2. In the project, open **Storage → Create Database → Neon (Postgres)** and connect
+   it to the project. This sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED` for you.
+3. Under **Settings → Environment Variables**, add `ADMIN_KEY` with a long random
+   value. Keep it private; it's your master edit key.
+4. Deploy (or redeploy). The build creates the database tables, and on the first
+   deploy it also loads the official rankings from
+   `data/official-rankings-2026-27.json`.
+
+To edit the official rankings, open them on the site, click **Edit**, and enter
+your `ADMIN_KEY`. Every push to GitHub redeploys automatically, and your
+rankings in the database are left alone.
+
+## Running locally
+
+Requires Node.js 20+ and a Postgres database (a second free Neon database
+works well, or reuse the Vercel one).
 
 ```bash
 npm install
-cp .env.example .env      # then set ADMIN_KEY to a long random string
-npm run db:push           # creates the SQLite database
+cp .env.example .env      # fill in the database URLs and ADMIN_KEY
+npm run db:push           # creates the tables
+npm run import:official   # loads the official rankings
 npm run dev               # http://localhost:3000
 ```
-
-Then load the official rankings with `npm run import:official`, which prints a
-private edit link. You can also open `/rankings/new`, click "Site admin?", and
-enter your `ADMIN_KEY`. Only one list is official at a time. It's the default in
-the trade calculator and powers the roster values on team pages.
 
 ## How editing works (no accounts)
 
@@ -58,16 +73,15 @@ In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
 best-first and weights the i-th player by `0.85^i`, so a pile of depth pieces
 doesn't automatically beat one star. Within 5% counts as fair.
 
-The official list was imported from `data/official-rankings-2026-27.json`
-(built from the (A) sheets, with names matched to Sleeper IDs) using
-`npm run import:official`. James Trafford (GK, Leeds) isn't in Sleeper's player
+The official list comes from `data/official-rankings-2026-27.json` (built from
+the (A) sheets, with names matched to Sleeper IDs). James Trafford (GK, Leeds) isn't in Sleeper's player
 database, so he was skipped.
 
 ## Configuration
 
 | Variable | Default | Notes |
 | --- | --- | --- |
-| `DATABASE_URL` | `file:./dev.db` | SQLite locally |
+| `DATABASE_URL` / `DATABASE_URL_UNPOOLED` | none | Postgres connection strings (set automatically by Vercel's Neon integration) |
 | `ADMIN_KEY` | none | Admin features are off while this is `change-me` |
 | `SLEEPER_LEAGUE_ID` | `1388351489117810688` | Change it when the league rolls over to a new season |
 | `EPL_CLUBS` | 2026-27 clubs | Comma-separated club codes. Sleeper's player pool includes players who left the PL, so the rankings pool is filtered to these clubs. Update each summer (`src/lib/config.ts`). |
@@ -81,12 +95,3 @@ fetched at most once a day.
 
 Sleeper doesn't expose head-to-head matchups for soccer leagues (the endpoint
 returns `null`), so standings are built from each roster's record.
-
-## Deploying
-
-Vercel is the easiest option. Its filesystem is read-only, though, so switch the
-database to Postgres first (Vercel Postgres, Neon, or Supabase):
-
-1. In `prisma/schema.prisma`, set `provider = "postgresql"`.
-2. Set `DATABASE_URL` and `ADMIN_KEY` in the Vercel project settings.
-3. Run `npx prisma db push` against the production database once.

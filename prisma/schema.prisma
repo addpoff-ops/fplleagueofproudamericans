@@ -2,11 +2,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// SQLite for local development. For production (e.g. Vercel), switch the
-// provider to "postgresql" and point DATABASE_URL at a hosted Postgres DB.
+// Postgres (e.g. Neon via Vercel). DATABASE_URL is the pooled connection the
+// site uses; DATABASE_URL_UNPOOLED is a direct connection used for schema
+// changes. Vercel's Neon integration sets both automatically. Locally, set both
+// to the same connection string.
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 model RankingSet {

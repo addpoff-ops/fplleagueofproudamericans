@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "import:official": "tsx scripts/import-official.ts"
+    "import:official": "tsx scripts/import-official.ts",
+    "vercel-build": "prisma generate && prisma db push --skip-generate && tsx scripts/import-official.ts --if-empty && next build"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
