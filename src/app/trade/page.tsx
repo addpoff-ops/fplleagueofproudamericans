@@ -15,7 +15,7 @@ export default async function TradePage({ searchParams }: { searchParams: Promis
     <>
       <PageTitle
         title="Trade Calculator"
-        sub="Values come from each player's position and tier in the rankings list you pick. Each tier from F up to S is worth more than the one below it: 1.85× for FWD, 1.7× for MID and DEF, 1.5× for GK."
+        sub="Values come from each player's position and tier in the rankings list you pick. Each tier from F up to S is worth more than the one below it: 1.78× for FWD, 1.7× for MID and DEF, 1.5× for GK."
       />
       {sets.length === 0 ? (
         <div className="card p-8 text-center text-sm text-zinc-500">
