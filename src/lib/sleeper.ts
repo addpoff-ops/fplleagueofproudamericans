@@ -102,8 +102,8 @@ interface RawPlayer {
 export interface Player {
   id: string;
   name: string;
-  pos: string; // primary position: F, M, D, GK
-  positions: string[]; // all eligible fantasy positions
+  pos: string; // the player's single Sleeper position: F, M, D, GK
+  positions: string[]; // [pos] (multi-position eligibility is off in our league)
   team: string | null; // club abbreviation, e.g. "MCI"
   injury: string | null;
   age: number | null;
@@ -154,7 +154,9 @@ export async function getPlayers(): Promise<Record<string, Player>> {
   const data: Record<string, Player> = {};
   for (const p of Object.values(raw)) {
     if (!p.player_id || !p.position) continue;
-    const positions = p.fantasy_positions?.length ? p.fantasy_positions : [p.position];
+    // Our league has multi-position eligibility turned off, so each player has
+    // exactly one position: Sleeper's `position` (not `fantasy_positions`).
+    const positions = [p.position];
     data[p.player_id] = {
       id: p.player_id,
       name: (p.full_name || `${p.first_name ?? ""} ${p.last_name ?? ""}`).trim(),

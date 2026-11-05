@@ -60,8 +60,8 @@ export type SeedEntry = { playerId: string; pos: Pos; rank: number; tier: Tier }
 
 /**
  * Turn a best-first ordering of players into a positional list. Players in the
- * official list keep its position (e.g. Saka is a MID there, though Sleeper
- * lists him as FWD); everyone else uses their primary Sleeper position. Tiers
+ * official list keep its position; everyone else uses their single Sleeper
+ * position (multi-position eligibility is off in our league). Tiers
  * are borrowed rank-for-rank from
  * the official list (the official FWD #3's tier goes to this list's FWD #3);
  * ranks beyond the official list get Z.
