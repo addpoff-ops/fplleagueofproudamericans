@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { canEdit } from "@/lib/keys";
+import { getEntries } from "@/lib/rankings";
+import { isPos, isTier } from "@/lib/value";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -8,12 +10,10 @@ export async function GET(_req: Request, { params }: Ctx) {
   const { slug } = await params;
   const set = await prisma.rankingSet.findUnique({
     where: { slug },
-    include: { entries: { orderBy: { rank: "asc" }, select: { playerId: true, rank: true, tier: true } } },
+    select: { slug: true, name: true, author: true, description: true, isOfficial: true, updatedAt: true },
   });
   if (!set) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const { editKeyHash: _omit, ...pub } = set;
-  void _omit;
-  return NextResponse.json(pub);
+  return NextResponse.json({ ...set, entries: await getEntries({ slug }) });
 }
 
 async function authorize(req: Request, slug: string) {
@@ -24,29 +24,41 @@ async function authorize(req: Request, slug: string) {
   return { set };
 }
 
-/** Replace the full ordered list. Body: { playerIds: string[], name?, description? } */
+/**
+ * Replace the whole list.
+ * Body: { sections: { F: [{ playerId, tier }], M: [...], D: [...], GK: [...] } }
+ * Array order is the rank within each position.
+ */
 export async function PUT(req: Request, { params }: Ctx) {
   const { slug } = await params;
   const { set, error } = await authorize(req, slug);
   if (error) return error;
   const body = await req.json().catch(() => null);
-  const ids: unknown = body?.playerIds;
-  if (!Array.isArray(ids) || ids.some((x) => typeof x !== "string") || ids.length > 2000)
-    return NextResponse.json({ error: "playerIds must be an array of strings" }, { status: 400 });
-  const unique = [...new Set(ids as string[])];
+  const sections = body?.sections;
+  if (!sections || typeof sections !== "object")
+    return NextResponse.json({ error: "Body must be { sections: { F, M, D, GK } }" }, { status: 400 });
+
+  const rows: { setId: string; playerId: string; pos: string; rank: number; tier: string }[] = [];
+  const seen = new Set<string>();
+  for (const [pos, list] of Object.entries(sections)) {
+    if (!isPos(pos) || !Array.isArray(list) || list.length > 500)
+      return NextResponse.json({ error: `Invalid section ${pos}` }, { status: 400 });
+    for (const item of list) {
+      const playerId = item?.playerId;
+      if (typeof playerId !== "string" || !isTier(item?.tier))
+        return NextResponse.json({ error: "Each entry needs a playerId and a tier (S, A–F, or Z)" }, { status: 400 });
+      if (seen.has(playerId)) continue; // a player can only be ranked in one section
+      seen.add(playerId);
+      rows.push({ setId: set.id, playerId, pos, rank: rows.filter((r) => r.pos === pos).length + 1, tier: item.tier });
+    }
+  }
 
   await prisma.$transaction([
     prisma.rankingEntry.deleteMany({ where: { setId: set.id } }),
-    prisma.rankingEntry.createMany({ data: unique.map((playerId, i) => ({ setId: set.id, playerId, rank: i + 1 })) }),
-    prisma.rankingSet.update({
-      where: { id: set.id },
-      data: {
-        ...(body?.name ? { name: String(body.name).slice(0, 80) } : {}),
-        ...(body?.description !== undefined ? { description: String(body.description).slice(0, 500) || null } : {}),
-      },
-    }),
+    prisma.rankingEntry.createMany({ data: rows }),
+    prisma.rankingSet.update({ where: { id: set.id }, data: { updatedAt: new Date() } }),
   ]);
-  return NextResponse.json({ ok: true, count: unique.length });
+  return NextResponse.json({ ok: true, count: rows.length });
 }
 
 export async function DELETE(req: Request, { params }: Ctx) {

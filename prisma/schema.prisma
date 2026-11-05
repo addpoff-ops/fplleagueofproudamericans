@@ -26,10 +26,11 @@ model RankingEntry {
   id       Int        @id @default(autoincrement())
   setId    String
   playerId String
-  rank     Int
-  tier     Int?
+  pos      String // section the player is ranked in: F, M, D or GK
+  rank     Int // rank within that position (1 = best)
+  tier     String // S, A, B, C, D, E, F or Z
   set      RankingSet @relation(fields: [setId], references: [id], onDelete: Cascade)
 
   @@unique([setId, playerId])
-  @@index([setId, rank])
+  @@index([setId, pos, rank])
 }

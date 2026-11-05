@@ -13,7 +13,7 @@ A league hub for the **FPL League of Proud Americans**
 | `/draft` | The full draft board |
 | `/rankings` | The official rankings plus anyone else's lists |
 | `/rankings/new` | Create a list, starting from Sleeper's order, a copy of another list, or blank |
-| `/rankings/[slug]` | View a list, or edit it with drag-and-drop, rank numbers, add/remove, and save |
+| `/rankings/[slug]` | A list split into FWD / MID / DEF / GK sections with tiers. Edit with drag-and-drop, rank numbers, tier pickers, and add/remove |
 | `/trade` | Trade calculator driven by any rankings list, with "to even it up" suggestions |
 
 ## Getting started
@@ -25,9 +25,10 @@ npm run db:push           # creates the SQLite database
 npm run dev               # http://localhost:3000
 ```
 
-Then create the **official** rankings: open `/rankings/new`, click "Site admin?",
-and enter your `ADMIN_KEY`. Only one list is official at a time. It's the default
-in the trade calculator and powers the roster values on team pages.
+Then load the official rankings with `npm run import:official`, which prints a
+private edit link. You can also open `/rankings/new`, click "Site admin?", and
+enter your `ADMIN_KEY`. Only one list is official at a time. It's the default in
+the trade calculator and powers the roster values on team pages.
 
 ## How editing works (no accounts)
 
@@ -35,15 +36,32 @@ Creating a list returns a secret **edit link**. The browser that created it
 remembers the key. Anyone else needs the link, or the site `ADMIN_KEY` (which can
 edit or delete any list). Keys are stored bcrypt-hashed.
 
-## How trade values work (`src/lib/value.ts`)
+## Rankings & trade values (`src/lib/value.ts`)
 
-- `value = 10000 × e^(−0.0125 × (rank − 1))`, so #1 = 10,000, #50 ≈ 5,400,
-  #100 ≈ 2,900, #200 ≈ 830. Unranked players are worth 0.
-- **Adjusted** totals sort each side best-first and weight the i-th player by
-  `0.85^i`. This way a pile of depth pieces doesn't automatically beat one star.
-- Within 5% counts as fair. Up to 15% is a slight edge, up to 30% a clear edge, and anything more is lopsided.
+Each list has four sections (**FWD, MID, DEF, GK**). Players are ranked
+within their position and given a tier (S, A–F, Z). Value depends on position
+and tier, based on the original values in the FWD/MID/DEF/GK (A) sheets:
 
-Tune `DECAY` and `DEPTH_FACTOR` to taste.
+- **Z** keeps the sheet's original value. **F** is the sheet's original F value.
+- Each tier above F is worth **1.7×** the one below (`TIER_GROWTH`).
+
+| | Z | F | E | D | C | B | A | S |
+|---|---|---|---|---|---|---|---|---|
+| FWD | 180 | 208 | 354 | 601 | 1,022 | 1,737 | 2,953 | 5,021 |
+| MID | 200 | 250 | 425 | 722 | 1,228 | 2,088 | 3,550 | 6,034 |
+| DEF | 195 | 220 | 374 | 636 | 1,081 | 1,837 | 3,124 | 5,310 |
+| GK  | 200 | 200 | 340 | 578 | 983 | 1,670 | 2,840 | 4,828 |
+
+(The sheet has no GK F tier, so GK F uses 200.)
+
+In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
+best-first and weights the i-th player by `0.85^i`, so a pile of depth pieces
+doesn't automatically beat one star. Within 5% counts as fair.
+
+The official list was imported from `data/official-rankings-2026-27.json`
+(built from the (A) sheets, with names matched to Sleeper IDs) using
+`npm run import:official`. James Trafford (GK, Leeds) isn't in Sleeper's player
+database, so he was skipped.
 
 ## Configuration
 

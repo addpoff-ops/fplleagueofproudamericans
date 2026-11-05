@@ -48,7 +48,7 @@ export default function NewRankingForm({ sets }: { sets: { slug: string; name: s
       <label className="grid gap-1 text-sm">
         <span className="font-medium">Start from</span>
         <select name="startFrom" defaultValue={sets[0]?.slug ?? "sleeper"} className="input">
-          <option value="sleeper">Sleeper&apos;s default player order (top 300)</option>
+          <option value="sleeper">Sleeper&apos;s player order (tiers copied from the official list)</option>
           {sets.map((s) => (
             <option key={s.slug} value={s.slug}>
               Copy “{s.name}” by {s.author}

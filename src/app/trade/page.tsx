@@ -15,7 +15,7 @@ export default async function TradePage({ searchParams }: { searchParams: Promis
     <>
       <PageTitle
         title="Trade Calculator"
-        sub="Values come from whichever rankings list you pick: #1 is worth 10,000, and value drops off quickly down the list."
+        sub="Values come from each player's position and tier in the rankings list you pick. Each tier from F up to S is worth 1.7× the one below it."
       />
       {sets.length === 0 ? (
         <div className="card p-8 text-center text-sm text-zinc-500">
@@ -26,7 +26,7 @@ export default async function TradePage({ searchParams }: { searchParams: Promis
           sets={sets.map((s) => ({ slug: s.slug, name: s.name, author: s.author, isOfficial: s.isOfficial }))}
           initialSlug={initial.slug}
           teams={teams.map((t) => ({ rosterId: t.rosterId, name: t.teamName, players: t.players }))}
-          pool={pool.map(({ id, name, pos, team, injury }) => ({ id, name, pos, team, injury }))}
+          pool={pool.map(({ id, name, pos, positions, team, injury }) => ({ id, name, pos, positions, team, injury }))}
         />
       )}
     </>

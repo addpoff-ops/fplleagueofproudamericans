@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DEPTH_FACTOR, rankToValue, scoreSide, verdict } from "@/lib/value";
+import { DEPTH_FACTOR, POSITION_LABEL, scoreSide, verdict, type RankedEntry } from "@/lib/value";
 import { POSITION_STYLES } from "@/lib/positions";
 import type { SlimPlayer } from "../rankings/[slug]/RankingBoard";
 
@@ -19,7 +19,7 @@ interface SideState {
 
 export default function TradeCalculator({ sets, initialSlug, teams, pool }: Props) {
   const [slug, setSlug] = useState(initialSlug);
-  const [ranks, setRanks] = useState<Map<string, number> | null>(null);
+  const [ranks, setRanks] = useState<Map<string, RankedEntry> | null>(null);
   const [sides, setSides] = useState<[SideState, SideState]>([
     { rosterId: teams[0]?.rosterId ?? null, players: [] },
     { rosterId: teams[1]?.rosterId ?? null, players: [] },
@@ -31,8 +31,8 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool }: Prop
     setRanks(null);
     fetch(`/api/rankings/${slug}`)
       .then((r) => r.json())
-      .then((d: { entries: { playerId: string; rank: number }[] }) => {
-        if (!cancelled) setRanks(new Map(d.entries.map((e) => [e.playerId, e.rank])));
+      .then((d: { entries: RankedEntry[] }) => {
+        if (!cancelled) setRanks(new Map(d.entries.map((e) => [e.playerId, e])));
       });
     const url = new URL(window.location.href);
     url.searchParams.set("rankings", slug);
@@ -42,7 +42,7 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool }: Prop
     };
   }, [slug]);
 
-  const valueOf = (id: string) => rankToValue(ranks?.get(id));
+  const valueOf = (id: string) => ranks?.get(id)?.value ?? 0;
   const scores = sides.map((s) => scoreSide(s.players.map(valueOf)));
   // Side A *sends* its players to B, so whoever *receives* more value comes out ahead.
   const v = verdict(scores[1].adjusted, scores[0].adjusted); // "A" here = side A receives more
@@ -163,7 +163,7 @@ function SidePanel(props: {
   pool: SlimPlayer[];
   byId: Map<string, SlimPlayer>;
   valueOf: (id: string) => number;
-  ranks: Map<string, number> | null;
+  ranks: Map<string, RankedEntry> | null;
   exclude: Set<string>;
   score: { raw: number; adjusted: number };
   onChange: (s: Partial<SideState>) => void;
@@ -205,10 +205,10 @@ function SidePanel(props: {
           const p = byId.get(id);
           return (
             <li key={id} className="flex items-center gap-2 rounded-lg bg-zinc-50 px-2 py-1.5 text-sm dark:bg-zinc-800/50">
-              <Pos pos={p?.pos ?? "?"} />
+              <Pos pos={ranks?.get(id)?.pos ?? p?.pos ?? "?"} />
               <span className="font-medium">{p?.name ?? id}</span>
               <span className="text-xs text-zinc-500">{p?.team}</span>
-              <span className="ml-auto text-xs text-zinc-500">{ranks?.has(id) ? `#${ranks.get(id)}` : "unranked"}</span>
+              <span className="ml-auto text-xs text-zinc-500">{ranks?.get(id) ? `${POSITION_LABEL[ranks.get(id)!.pos]} #${ranks.get(id)!.rank} · ${ranks.get(id)!.tier}` : "unranked"}</span>
               <span className="w-14 text-right tabular-nums">{valueOf(id).toLocaleString()}</span>
               <button className="text-zinc-400 hover:text-rose-600" onClick={() => onChange({ players: side.players.filter((x) => x !== id) })}>
                 ✕
@@ -230,7 +230,7 @@ function SidePanel(props: {
             }}
             className="flex w-full items-center gap-2 px-2 py-1 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
-            <Pos pos={p.pos} />
+            <Pos pos={ranks?.get(p.id)?.pos ?? p.pos} />
             {p.name}
             <span className="text-xs text-zinc-500">{p.team}</span>
             <span className="ml-auto text-xs tabular-nums text-zinc-500">{valueOf(p.id).toLocaleString()}</span>

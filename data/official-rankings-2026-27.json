@@ -1,0 +1,1227 @@
+{
+ "name": "Addison's 2026-27 Rankings",
+ "author": "Addison",
+ "source": "FPL_26-27_Analysis_Sheet.xlsx (A sheets)",
+ "positions": {
+  "F": [
+   {
+    "playerId": "1721",
+    "tier": "S",
+    "sheetName": "Haaland",
+    "sleeperName": "Erling Haaland"
+   },
+   {
+    "playerId": "2074",
+    "tier": "A",
+    "sheetName": "Pedro",
+    "sleeperName": "João Pedro"
+   },
+   {
+    "playerId": "1786",
+    "tier": "A",
+    "sheetName": "Isak",
+    "sleeperName": "Alexander Isak"
+   },
+   {
+    "playerId": "1963",
+    "tier": "A",
+    "sheetName": "Mbeumo",
+    "sleeperName": "Bryan Mbeumo"
+   },
+   {
+    "playerId": "14935",
+    "tier": "B",
+    "sheetName": "Belloumi",
+    "sleeperName": "Mohamed Belloumi"
+   },
+   {
+    "playerId": "1862",
+    "tier": "B",
+    "sheetName": "Gakpo",
+    "sleeperName": "Cody Gakpo"
+   },
+   {
+    "playerId": "10130",
+    "tier": "B",
+    "sheetName": "Kostoulas",
+    "sleeperName": "Charalampos Kostoulas"
+   },
+   {
+    "playerId": "3667",
+    "tier": "B",
+    "sheetName": "Thiago",
+    "sleeperName": "Igor Thiago"
+   },
+   {
+    "playerId": "2421",
+    "tier": "C",
+    "sheetName": "Havertz",
+    "sleeperName": "Kai Havertz"
+   },
+   {
+    "playerId": "1909",
+    "tier": "C",
+    "sheetName": "Jackson",
+    "sleeperName": "Nicolas Jackson"
+   },
+   {
+    "playerId": "13386",
+    "tier": "C",
+    "sheetName": "Rayan",
+    "sleeperName": " Rayan"
+   },
+   {
+    "playerId": "3778",
+    "tier": "C",
+    "sheetName": "Ndiaye",
+    "sleeperName": "Iliman Ndiaye"
+   },
+   {
+    "playerId": "2526",
+    "tier": "C",
+    "sheetName": "Cunha",
+    "sleeperName": "Matheus Cunha"
+   },
+   {
+    "playerId": "4382",
+    "tier": "C",
+    "sheetName": "Barcola",
+    "sleeperName": "Bradley Barcola"
+   },
+   {
+    "playerId": "4049",
+    "tier": "C",
+    "sheetName": "Evanilson",
+    "sleeperName": " Evanilson"
+   },
+   {
+    "playerId": "4077",
+    "tier": "C",
+    "sheetName": "Barry",
+    "sleeperName": "Thierno Barry"
+   },
+   {
+    "playerId": "1823",
+    "tier": "D",
+    "sheetName": "Semenyo",
+    "sleeperName": "Antoine Semenyo"
+   },
+   {
+    "playerId": "4269",
+    "tier": "D",
+    "sheetName": "Tzolis",
+    "sleeperName": "Christos Tzolis"
+   },
+   {
+    "playerId": "2193",
+    "tier": "D",
+    "sheetName": "Mateta",
+    "sleeperName": "Jean-Philippe Mateta"
+   },
+   {
+    "playerId": "11576",
+    "tier": "D",
+    "sheetName": "Brobbey",
+    "sleeperName": "Brian Brobbey"
+   },
+   {
+    "playerId": "1836",
+    "tier": "D",
+    "sheetName": "Solanke",
+    "sleeperName": "Dominic Solanke"
+   },
+   {
+    "playerId": "1994",
+    "tier": "D",
+    "sheetName": "Calvert-Lewin",
+    "sleeperName": "Dominic Calvert-Lewin"
+   },
+   {
+    "playerId": "2770",
+    "tier": "D",
+    "sheetName": "Garcia",
+    "sleeperName": "Gonzalo García"
+   },
+   {
+    "playerId": "1957",
+    "tier": "D",
+    "sheetName": "Wissa",
+    "sleeperName": "Yoane Wissa"
+   },
+   {
+    "playerId": "6940",
+    "tier": "D",
+    "sheetName": "Marmoush",
+    "sleeperName": "Omar Marmoush"
+   },
+   {
+    "playerId": "6611",
+    "tier": "E",
+    "sheetName": "Munoz",
+    "sleeperName": "Víctor Muñoz"
+   },
+   {
+    "playerId": "14909",
+    "tier": "E",
+    "sheetName": "Thomas-Asante",
+    "sleeperName": "Brandon Thomas-Asante"
+   },
+   {
+    "playerId": "3022",
+    "tier": "E",
+    "sheetName": "Savio",
+    "sleeperName": " Sávio"
+   },
+   {
+    "playerId": "3981",
+    "tier": "F",
+    "sheetName": "Sarr",
+    "sleeperName": "Ismaïla Sarr"
+   },
+   {
+    "playerId": "11573",
+    "tier": "F",
+    "sheetName": "Emersonn",
+    "sleeperName": " Emersonn"
+   },
+   {
+    "playerId": "1274",
+    "tier": "F",
+    "sheetName": "McBurnie",
+    "sleeperName": "Oliver McBurnie"
+   },
+   {
+    "playerId": "5226",
+    "tier": "F",
+    "sheetName": "Sesko",
+    "sleeperName": "Benjamin Sesko"
+   },
+   {
+    "playerId": "4901",
+    "tier": "F",
+    "sheetName": "Gyokeres",
+    "sleeperName": "Viktor Gyökeres"
+   },
+   {
+    "playerId": "6197",
+    "tier": "F",
+    "sheetName": "Ndoye",
+    "sleeperName": "Dan Ndoye"
+   },
+   {
+    "playerId": "5354",
+    "tier": "Z",
+    "sheetName": "Tel",
+    "sleeperName": "Mathys Tel"
+   },
+   {
+    "playerId": "3644",
+    "tier": "Z",
+    "sheetName": "Delap",
+    "sleeperName": "Liam Delap"
+   },
+   {
+    "playerId": "1928",
+    "tier": "Z",
+    "sheetName": "George",
+    "sleeperName": "Tyrique George"
+   },
+   {
+    "playerId": "5207",
+    "tier": "Z",
+    "sheetName": "Okafor",
+    "sleeperName": "Noah Okafor"
+   },
+   {
+    "playerId": "13503",
+    "tier": "Z",
+    "sheetName": "Angulo",
+    "sleeperName": "Nilson Angulo"
+   },
+   {
+    "playerId": "3309",
+    "tier": "Z",
+    "sheetName": "Strand Larsen",
+    "sleeperName": "Jørgen Strand Larsen"
+   },
+   {
+    "playerId": "4057",
+    "tier": "Z",
+    "sheetName": "Rutter",
+    "sleeperName": "Georginio Rutter"
+   },
+   {
+    "playerId": "5448",
+    "tier": "Z",
+    "sheetName": "Fernandez-Pardo",
+    "sleeperName": "Matias Fernandez-Pardo"
+   },
+   {
+    "playerId": "1269",
+    "tier": "Z",
+    "sheetName": "Osula",
+    "sleeperName": "William Osula"
+   },
+   {
+    "playerId": "2071",
+    "tier": "Z",
+    "sheetName": "Welbeck",
+    "sleeperName": "Danny Welbeck"
+   },
+   {
+    "playerId": "9438",
+    "tier": "Z",
+    "sheetName": "Estevao",
+    "sleeperName": " Estêvão"
+   },
+   {
+    "playerId": "3649",
+    "tier": "Z",
+    "sheetName": "Minteh",
+    "sleeperName": "Yankuba Minteh"
+   }
+  ],
+  "M": [
+   {
+    "playerId": "1922",
+    "tier": "S",
+    "sheetName": "Palmer",
+    "sleeperName": "Cole Palmer"
+   },
+   {
+    "playerId": "1213",
+    "tier": "A",
+    "sheetName": "Fernandes",
+    "sleeperName": "Bruno Fernandes"
+   },
+   {
+    "playerId": "1091",
+    "tier": "A",
+    "sheetName": "Rogers",
+    "sleeperName": "Morgan Rogers"
+   },
+   {
+    "playerId": "8339",
+    "tier": "B",
+    "sheetName": "Cherki",
+    "sleeperName": "Rayan Cherki"
+   },
+   {
+    "playerId": "2410",
+    "tier": "B",
+    "sheetName": "Saka",
+    "sleeperName": "Bukayo Saka"
+   },
+   {
+    "playerId": "4864",
+    "tier": "B",
+    "sheetName": "Wirtz",
+    "sleeperName": "Florian Wirtz"
+   },
+   {
+    "playerId": "1011",
+    "tier": "B",
+    "sheetName": "Gibbs-White",
+    "sleeperName": "Morgan Gibbs-White"
+   },
+   {
+    "playerId": "2403",
+    "tier": "B",
+    "sheetName": "Rice",
+    "sleeperName": "Declan Rice"
+   },
+   {
+    "playerId": "2051",
+    "tier": "C",
+    "sheetName": "Gross",
+    "sleeperName": "Pascal Groß"
+   },
+   {
+    "playerId": "2520",
+    "tier": "C",
+    "sheetName": "Neto",
+    "sleeperName": "Pedro Neto"
+   },
+   {
+    "playerId": "7590",
+    "tier": "C",
+    "sheetName": "Manzambi",
+    "sleeperName": "Johan Manzambi"
+   },
+   {
+    "playerId": "1830",
+    "tier": "C",
+    "sheetName": "Tavernier",
+    "sleeperName": "Marcus Tavernier"
+   },
+   {
+    "playerId": "7571",
+    "tier": "C",
+    "sheetName": "Stach",
+    "sleeperName": "Anton Stach"
+   },
+   {
+    "playerId": "3213",
+    "tier": "C",
+    "sheetName": "Dewsbury-Hall",
+    "sleeperName": "Kiernan Dewsbury-Hall"
+   },
+   {
+    "playerId": "1882",
+    "tier": "C",
+    "sheetName": "Enzo",
+    "sleeperName": "Enzo Fernández"
+   },
+   {
+    "playerId": "2415",
+    "tier": "C",
+    "sheetName": "Odegaard",
+    "sleeperName": "Martin Ødegaard"
+   },
+   {
+    "playerId": "1930",
+    "tier": "C",
+    "sheetName": "Schade",
+    "sleeperName": "Kevin Schade"
+   },
+   {
+    "playerId": "1571",
+    "tier": "C",
+    "sheetName": "Gomez",
+    "sleeperName": "Diego Gómez"
+   },
+   {
+    "playerId": "1865",
+    "tier": "D",
+    "sheetName": "Szoboszlai",
+    "sleeperName": "Dominik Szoboszlai"
+   },
+   {
+    "playerId": "1766",
+    "tier": "D",
+    "sheetName": "Barnes",
+    "sleeperName": "Harvey Barnes"
+   },
+   {
+    "playerId": "1948",
+    "tier": "D",
+    "sheetName": "Janelt",
+    "sleeperName": "Vitaly Janelt"
+   },
+   {
+    "playerId": "1654",
+    "tier": "D",
+    "sheetName": "Iwobi",
+    "sleeperName": "Alex Iwobi"
+   },
+   {
+    "playerId": "1716",
+    "tier": "D",
+    "sheetName": "Doku",
+    "sleeperName": "Jérémy Doku"
+   },
+   {
+    "playerId": "1838",
+    "tier": "E",
+    "sheetName": "Scott",
+    "sleeperName": "Alex Scott"
+   },
+   {
+    "playerId": "1806",
+    "tier": "E",
+    "sheetName": "Anderson",
+    "sleeperName": "Elliot Anderson"
+   },
+   {
+    "playerId": "2160",
+    "tier": "E",
+    "sheetName": "Kudus",
+    "sleeperName": "Mohammed Kudus"
+   },
+   {
+    "playerId": "1989",
+    "tier": "E",
+    "sheetName": "Garner",
+    "sleeperName": "James Garner"
+   },
+   {
+    "playerId": "1781",
+    "tier": "E",
+    "sheetName": "Guimaraes",
+    "sleeperName": "Bruno Guimarães"
+   },
+   {
+    "playerId": "10495",
+    "tier": "E",
+    "sheetName": "Le Fee",
+    "sleeperName": "Enzo Le Fée"
+   },
+   {
+    "playerId": "1940",
+    "tier": "E",
+    "sheetName": "Lewis-Potter",
+    "sleeperName": "Keane Lewis-Potter"
+   },
+   {
+    "playerId": "1649",
+    "tier": "F",
+    "sheetName": "King",
+    "sleeperName": "Josh King"
+   },
+   {
+    "playerId": "14900",
+    "tier": "F",
+    "sheetName": "Rudoni",
+    "sleeperName": "Jack Rudoni"
+   },
+   {
+    "playerId": "4870",
+    "tier": "F",
+    "sheetName": "Xhaka",
+    "sleeperName": "Granit Xhaka"
+   },
+   {
+    "playerId": "3768",
+    "tier": "F",
+    "sheetName": "Kamada",
+    "sleeperName": "Daichi Kamada"
+   },
+   {
+    "playerId": "1114",
+    "tier": "F",
+    "sheetName": "McGinn",
+    "sleeperName": "John McGinn"
+   },
+   {
+    "playerId": "1118",
+    "tier": "F",
+    "sheetName": "Tielemans",
+    "sleeperName": "Youri Tielemans"
+   },
+   {
+    "playerId": "3653",
+    "tier": "F",
+    "sheetName": "Anthony",
+    "sleeperName": "Jaidon Anthony"
+   },
+   {
+    "playerId": "2186",
+    "tier": "F",
+    "sheetName": "Wharton",
+    "sleeperName": "Adam Wharton"
+   },
+   {
+    "playerId": "1712",
+    "tier": "F",
+    "sheetName": "Foden",
+    "sleeperName": "Phil Foden"
+   },
+   {
+    "playerId": "1217",
+    "tier": "F",
+    "sheetName": "Rashford",
+    "sleeperName": "Marcus Rashford"
+   },
+   {
+    "playerId": "11474",
+    "tier": "F",
+    "sheetName": "Sangare",
+    "sleeperName": "Mamadou Sangaré"
+   },
+   {
+    "playerId": "1258",
+    "tier": "F",
+    "sheetName": "McAtee",
+    "sleeperName": "James McAtee"
+   },
+   {
+    "playerId": "2046",
+    "tier": "F",
+    "sheetName": "Enciso",
+    "sleeperName": "Julio Enciso"
+   },
+   {
+    "playerId": "1500",
+    "tier": "F",
+    "sheetName": "Maddison",
+    "sleeperName": "James Maddison"
+   },
+   {
+    "playerId": "2165",
+    "tier": "F",
+    "sheetName": "Eze",
+    "sleeperName": "Eberechi Eze"
+   },
+   {
+    "playerId": "1232",
+    "tier": "F",
+    "sheetName": "Mainoo",
+    "sleeperName": "Kobbie Mainoo"
+   },
+   {
+    "playerId": "10540",
+    "tier": "F",
+    "sheetName": "Ampadu",
+    "sleeperName": "Ethan Ampadu"
+   },
+   {
+    "playerId": "10957",
+    "tier": "Z",
+    "sheetName": "Henderson",
+    "sleeperName": "Jordan Henderson"
+   },
+   {
+    "playerId": "3672",
+    "tier": "Z",
+    "sheetName": "Ayari",
+    "sleeperName": "Yasin Ayari"
+   },
+   {
+    "playerId": "1113",
+    "tier": "Z",
+    "sheetName": "Kamara",
+    "sleeperName": "Boubacar Kamara"
+   },
+   {
+    "playerId": "1710",
+    "tier": "Z",
+    "sheetName": "Bobb",
+    "sleeperName": "Oscar Bobb"
+   },
+   {
+    "playerId": "1120",
+    "tier": "Z",
+    "sheetName": "Buendia",
+    "sleeperName": "Emiliano Buendía"
+   },
+   {
+    "playerId": "2885",
+    "tier": "Z",
+    "sheetName": "Charles",
+    "sleeperName": "Shea Charles"
+   },
+   {
+    "playerId": "3222",
+    "tier": "Z",
+    "sheetName": "Fatawu",
+    "sleeperName": "Abdul Fatawu"
+   },
+   {
+    "playerId": "1962",
+    "tier": "Z",
+    "sheetName": "Damsgaard",
+    "sleeperName": "Mikkel Damsgaard"
+   },
+   {
+    "playerId": "4036",
+    "tier": "Z",
+    "sheetName": "Armstrong",
+    "sleeperName": "Harrison Armstrong"
+   },
+   {
+    "playerId": "2075",
+    "tier": "Z",
+    "sheetName": "Hinshelwood",
+    "sleeperName": "Jack Hinshelwood"
+   },
+   {
+    "playerId": "3041",
+    "tier": "Z",
+    "sheetName": "Pino",
+    "sleeperName": "Yéremy Pino"
+   },
+   {
+    "playerId": "1816",
+    "tier": "Z",
+    "sheetName": "Kluivert",
+    "sleeperName": "Justin Kluivert"
+   },
+   {
+    "playerId": "1863",
+    "tier": "Z",
+    "sheetName": "Macallister",
+    "sleeperName": "Alexis Mac Allister"
+   },
+   {
+    "playerId": "1012",
+    "tier": "Z",
+    "sheetName": "Elanga",
+    "sleeperName": "Anthony Elanga"
+   },
+   {
+    "playerId": "7117",
+    "tier": "Z",
+    "sheetName": "Gonzalez",
+    "sleeperName": "Nico González"
+   },
+   {
+    "playerId": "4166",
+    "tier": "Z",
+    "sheetName": "Andres",
+    "sleeperName": "Chema Andrés"
+   },
+   {
+    "playerId": "1834",
+    "tier": "Z",
+    "sheetName": "Ouattara",
+    "sleeperName": "Dango Ouattara"
+   },
+   {
+    "playerId": "1714",
+    "tier": "Z",
+    "sheetName": "Grealish",
+    "sleeperName": "Jack Grealish"
+   },
+   {
+    "playerId": "2514",
+    "tier": "Z",
+    "sheetName": "Gomes",
+    "sleeperName": "João Gomes"
+   },
+   {
+    "playerId": "2070",
+    "tier": "Z",
+    "sheetName": "Baleba",
+    "sleeperName": "Carlos Baleba"
+   },
+   {
+    "playerId": "1886",
+    "tier": "Z",
+    "sheetName": "Caicedo",
+    "sleeperName": "Moisés Caicedo"
+   },
+   {
+    "playerId": "5467",
+    "tier": "Z",
+    "sheetName": "Bouaddi",
+    "sleeperName": "Ayyoub Bouaddi"
+   },
+   {
+    "playerId": "1235",
+    "tier": "Z",
+    "sheetName": "Amad",
+    "sleeperName": "Amad Diallo"
+   },
+   {
+    "playerId": "2707",
+    "tier": "Z",
+    "sheetName": "Merino",
+    "sleeperName": "Mikel Merino"
+   }
+  ],
+  "D": [
+   {
+    "playerId": "1993",
+    "tier": "S",
+    "sheetName": "Tarkowski",
+    "sleeperName": "James Tarkowski"
+   },
+   {
+    "playerId": "2408",
+    "tier": "A",
+    "sheetName": "Gabriel",
+    "sleeperName": "Gabriel Magalhães"
+   },
+   {
+    "playerId": "9599",
+    "tier": "A",
+    "sheetName": "Vuskovic",
+    "sleeperName": "Luka Vuskovic"
+   },
+   {
+    "playerId": "2413",
+    "tier": "A",
+    "sheetName": "Timber",
+    "sleeperName": "Jurriën Timber"
+   },
+   {
+    "playerId": "3950",
+    "tier": "A",
+    "sheetName": "Calafiori",
+    "sleeperName": "Riccardo Calafiori"
+   },
+   {
+    "playerId": "2183",
+    "tier": "B",
+    "sheetName": "Guehi",
+    "sleeperName": "Marc Guéhi"
+   },
+   {
+    "playerId": "1789",
+    "tier": "B",
+    "sheetName": "Hall",
+    "sleeperName": "Lewis Hall"
+   },
+   {
+    "playerId": "4270",
+    "tier": "B",
+    "sheetName": "De Cuyper",
+    "sleeperName": "Maxim De Cuyper"
+   },
+   {
+    "playerId": "1663",
+    "tier": "B",
+    "sheetName": "Robinson",
+    "sleeperName": "Antonee Robinson"
+   },
+   {
+    "playerId": "1874",
+    "tier": "B",
+    "sheetName": "Van Dijk",
+    "sleeperName": "Virgil van Dijk"
+   },
+   {
+    "playerId": "1719",
+    "tier": "B",
+    "sheetName": "Gvardiol",
+    "sleeperName": "Josko Gvardiol"
+   },
+   {
+    "playerId": "4884",
+    "tier": "B",
+    "sheetName": "Mukiele",
+    "sleeperName": "Nordi Mukiele"
+   },
+   {
+    "playerId": "4361",
+    "tier": "C",
+    "sheetName": "Boscagli",
+    "sleeperName": "Olivier Boscagli"
+   },
+   {
+    "playerId": "2402",
+    "tier": "C",
+    "sheetName": "Saliba",
+    "sleeperName": "William Saliba"
+   },
+   {
+    "playerId": "1107",
+    "tier": "C",
+    "sheetName": "Konsa",
+    "sleeperName": "Ezri Konsa"
+   },
+   {
+    "playerId": "1275",
+    "tier": "C",
+    "sheetName": "Bogle",
+    "sleeperName": "Jayden Bogle"
+   },
+   {
+    "playerId": "3885",
+    "tier": "C",
+    "sheetName": "O'Reilly",
+    "sleeperName": "Nico O'Reilly"
+   },
+   {
+    "playerId": "10755",
+    "tier": "C",
+    "sheetName": "Muharemovic",
+    "sleeperName": "Tarik Muharemovic"
+   },
+   {
+    "playerId": "3224",
+    "tier": "C",
+    "sheetName": "Justin",
+    "sleeperName": "James Justin"
+   },
+   {
+    "playerId": "1991",
+    "tier": "C",
+    "sheetName": "Branthwaite",
+    "sleeperName": "Jarrad Branthwaite"
+   },
+   {
+    "playerId": "1933",
+    "tier": "C",
+    "sheetName": "Ajer",
+    "sleeperName": "Kristoffer Ajer"
+   },
+   {
+    "playerId": "8744",
+    "tier": "C",
+    "sheetName": "Jacquet",
+    "sleeperName": "Jérémy Jacquet"
+   },
+   {
+    "playerId": "2047",
+    "tier": "D",
+    "sheetName": "Van Hecke",
+    "sleeperName": "Jan Paul van Hecke"
+   },
+   {
+    "playerId": "2417",
+    "tier": "D",
+    "sheetName": "White",
+    "sleeperName": "Ben White"
+   },
+   {
+    "playerId": "1512",
+    "tier": "D",
+    "sheetName": "Van de Ven",
+    "sleeperName": "Micky van de Ven"
+   },
+   {
+    "playerId": "2008",
+    "tier": "D",
+    "sheetName": "Mykolenko",
+    "sleeperName": "Vitalii Mykolenko"
+   },
+   {
+    "playerId": "6960",
+    "tier": "D",
+    "sheetName": "Kayode",
+    "sleeperName": "Michael Kayode"
+   },
+   {
+    "playerId": "2164",
+    "tier": "D",
+    "sheetName": "Munoz",
+    "sleeperName": "Daniel Muñoz"
+   },
+   {
+    "playerId": "1008",
+    "tier": "D",
+    "sheetName": "Williams",
+    "sleeperName": "Neco Williams"
+   },
+   {
+    "playerId": "1827",
+    "tier": "D",
+    "sheetName": "Hill",
+    "sleeperName": "James Hill"
+   },
+   {
+    "playerId": "4130",
+    "tier": "E",
+    "sheetName": "Kadioglu",
+    "sleeperName": "Ferdi Kadioglu"
+   },
+   {
+    "playerId": "1009",
+    "tier": "E",
+    "sheetName": "Murillo",
+    "sleeperName": " Murillo"
+   },
+   {
+    "playerId": "14896",
+    "tier": "E",
+    "sheetName": "Thomas",
+    "sleeperName": "Bobby Thomas"
+   },
+   {
+    "playerId": "14937",
+    "tier": "E",
+    "sheetName": "Giles",
+    "sleeperName": "Ryan Giles"
+   },
+   {
+    "playerId": "1772",
+    "tier": "E",
+    "sheetName": "Botman",
+    "sleeperName": "Sven Botman"
+   },
+   {
+    "playerId": "1705",
+    "tier": "E",
+    "sheetName": "Dias",
+    "sleeperName": "Rúben Dias"
+   },
+   {
+    "playerId": "1707",
+    "tier": "E",
+    "sheetName": "Nunes",
+    "sleeperName": "Matheus Nunes"
+   },
+   {
+    "playerId": "2414",
+    "tier": "E",
+    "sheetName": "Lewis-Skelly",
+    "sleeperName": "Myles Lewis-Skelly"
+   },
+   {
+    "playerId": "1829",
+    "tier": "E",
+    "sheetName": "Kerkez",
+    "sleeperName": "Milos Kerkez"
+   },
+   {
+    "playerId": "5471",
+    "tier": "F",
+    "sheetName": "Gudmundsson",
+    "sleeperName": "Gabriel Gudmundsson"
+   },
+   {
+    "playerId": "1878",
+    "tier": "F",
+    "sheetName": "Robertson",
+    "sleeperName": "Andy Robertson"
+   },
+   {
+    "playerId": "2173",
+    "tier": "F",
+    "sheetName": "Mitchell",
+    "sleeperName": "Tyrick Mitchell"
+   },
+   {
+    "playerId": "6168",
+    "tier": "F",
+    "sheetName": "Khalaili",
+    "sleeperName": "Anan Khalaili"
+   },
+   {
+    "playerId": "1494",
+    "tier": "F",
+    "sheetName": "Porro",
+    "sleeperName": "Pedro Porro"
+   },
+   {
+    "playerId": "8738",
+    "tier": "F",
+    "sheetName": "Truffert",
+    "sleeperName": "Adrien Truffert"
+   },
+   {
+    "playerId": "5242",
+    "tier": "F",
+    "sheetName": "Silva",
+    "sleeperName": "António Silva"
+   },
+   {
+    "playerId": "4143",
+    "tier": "F",
+    "sheetName": "Lacroix",
+    "sleeperName": "Maxence Lacroix"
+   },
+   {
+    "playerId": "1267",
+    "tier": "F",
+    "sheetName": "Egan",
+    "sleeperName": "John Egan"
+   },
+   {
+    "playerId": "1060",
+    "tier": "F",
+    "sheetName": "O'Shea",
+    "sleeperName": "Dara O'Shea"
+   },
+   {
+    "playerId": "6074",
+    "tier": "F",
+    "sheetName": "Palestra",
+    "sleeperName": "Marco Palestra"
+   },
+   {
+    "playerId": "2674",
+    "tier": "Z",
+    "sheetName": "Araujo",
+    "sleeperName": "Ronald Araujo"
+   },
+   {
+    "playerId": "1211",
+    "tier": "Z",
+    "sheetName": "Dalot",
+    "sleeperName": "Diogo Dalot"
+   },
+   {
+    "playerId": "1673",
+    "tier": "Z",
+    "sheetName": "Castagne",
+    "sleeperName": "Timothy Castagne"
+   },
+   {
+    "playerId": "1206",
+    "tier": "Z",
+    "sheetName": "Maguire",
+    "sleeperName": "Harry Maguire"
+   },
+   {
+    "playerId": "2168",
+    "tier": "Z",
+    "sheetName": "Richards",
+    "sleeperName": "Chris Richards"
+   },
+   {
+    "playerId": "10511",
+    "tier": "Z",
+    "sheetName": "Ballard",
+    "sleeperName": "Dan Ballard"
+   },
+   {
+    "playerId": "10579",
+    "tier": "Z",
+    "sheetName": "Affengruber",
+    "sleeperName": "David Affengruber"
+   },
+   {
+    "playerId": "1648",
+    "tier": "Z",
+    "sheetName": "Bassey",
+    "sleeperName": "Calvin Bassey"
+   },
+   {
+    "playerId": "11239",
+    "tier": "Z",
+    "sheetName": "Hato",
+    "sleeperName": "Jorrel Hato"
+   },
+   {
+    "playerId": "5210",
+    "tier": "Z",
+    "sheetName": "Thiaw",
+    "sleeperName": "Malick Thiaw"
+   },
+   {
+    "playerId": "5494",
+    "tier": "Z",
+    "sheetName": "Dedic",
+    "sleeperName": "Amar Dedic"
+   },
+   {
+    "playerId": "1892",
+    "tier": "Z",
+    "sheetName": "Colwill",
+    "sleeperName": "Levi Colwill"
+   },
+   {
+    "playerId": "1958",
+    "tier": "Z",
+    "sheetName": "Collins",
+    "sleeperName": "Nathan Collins"
+   },
+   {
+    "playerId": "3297",
+    "tier": "Z",
+    "sheetName": "Chavarria",
+    "sleeperName": "Pep Chavarría"
+   },
+   {
+    "playerId": "1090",
+    "tier": "Z",
+    "sheetName": "Cash",
+    "sleeperName": "Matty Cash"
+   },
+   {
+    "playerId": "1927",
+    "tier": "Z",
+    "sheetName": "Acheampong",
+    "sleeperName": "Josh Acheampong"
+   },
+   {
+    "playerId": "4891",
+    "tier": "Z",
+    "sheetName": "Diomande",
+    "sleeperName": "Ousmane Diomande"
+   },
+   {
+    "playerId": "1826",
+    "tier": "Z",
+    "sheetName": "Senesi",
+    "sleeperName": "Marcos Senesi"
+   },
+   {
+    "playerId": "5098",
+    "tier": "Z",
+    "sheetName": "Diouf",
+    "sleeperName": "El Hadji Malick Diouf"
+   },
+   {
+    "playerId": "1229",
+    "tier": "Z",
+    "sheetName": "Martinez",
+    "sleeperName": "Lisandro Martínez"
+   },
+   {
+    "playerId": "7906",
+    "tier": "Z",
+    "sheetName": "Ahanor",
+    "sleeperName": "Honest Ahanor"
+   }
+  ],
+  "GK": [
+   {
+    "playerId": "2399",
+    "tier": "S",
+    "sheetName": "Raya",
+    "sleeperName": "David Raya"
+   },
+   {
+    "playerId": "4374",
+    "tier": "A",
+    "sheetName": "Donnarumma",
+    "sleeperName": "Gianluigi Donnarumma"
+   },
+   {
+    "playerId": "1873",
+    "tier": "A",
+    "sheetName": "Kelleher",
+    "sleeperName": "Caoimhín Kelleher"
+   },
+   {
+    "playerId": "2016",
+    "tier": "A",
+    "sheetName": "Pickford",
+    "sleeperName": "Jordan Pickford"
+   },
+   {
+    "playerId": "2053",
+    "tier": "B",
+    "sheetName": "Verbruggen",
+    "sleeperName": "Bart Verbruggen"
+   },
+   {
+    "playerId": "7993",
+    "tier": "B",
+    "sheetName": "Suzuki",
+    "sleeperName": "Zion Suzuki"
+   },
+   {
+    "playerId": "12055",
+    "tier": "C",
+    "sheetName": "Tzolakis",
+    "sleeperName": "Konstantinos Tzolakis"
+   },
+   {
+    "playerId": "1850",
+    "tier": "C",
+    "sheetName": "Alisson",
+    "sleeperName": "Alisson Becker"
+   },
+   {
+    "playerId": "1097",
+    "tier": "C",
+    "sheetName": "Martinez",
+    "sleeperName": "Emiliano Martínez"
+   },
+   {
+    "playerId": "1645",
+    "tier": "D",
+    "sheetName": "Leno",
+    "sleeperName": "Bernd Leno"
+   },
+   {
+    "playerId": "5108",
+    "tier": "D",
+    "sheetName": "Kinsky",
+    "sleeperName": "Antonín Kinsky"
+   },
+   {
+    "playerId": "16100",
+    "tier": "E",
+    "sheetName": "Hornicek",
+    "sleeperName": "Lukás Hornícek"
+   },
+   {
+    "playerId": "11577",
+    "tier": "Z",
+    "sheetName": "Lammens",
+    "sleeperName": "Senne Lammens"
+   },
+   {
+    "playerId": "9697",
+    "tier": "Z",
+    "sheetName": "Penders",
+    "sleeperName": "Mike Penders"
+   }
+  ]
+ }
+}
