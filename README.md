@@ -89,23 +89,22 @@ edit or delete any list). Keys are stored bcrypt-hashed.
 ## Rankings & trade values (`src/lib/value.ts`)
 
 Each list has four sections (**FWD, MID, DEF, GK**). Players are ranked
-within their position and given a tier (S, A–F, Z). Value depends on position
-and tier, based on the original values in the FWD/MID/DEF/GK (A) sheets:
-
-- **Z** keeps the sheet's original value. **F** is the sheet's original F value.
-- Each tier above F is worth more than the one below it (`TIER_GROWTH`): **1.78×** for FWD, **1.7×** for MID, **1.57×** for DEF, **1.5×** for GK.
+within their position and given a tier (S, A–F, Z). Every page (trade
+calculator, rankings, team pages, Power Rankings) values a player by position
+and tier using the original values from the FWD/MID/DEF/GK (A) sheets:
 
 | | Z | F | E | D | C | B | A | S |
 |---|---|---|---|---|---|---|---|---|
-| FWD | 180 | 208 | 370 | 659 | 1,173 | 2,088 | 3,717 | 6,616 |
-| MID | 200 | 250 | 425 | 722 | 1,228 | 2,088 | 3,550 | 6,034 |
-| DEF | 220 | 220 | 345 | 542 | 851 | 1,337 | 2,099 | 3,295 |
-| GK  | 200 | 200 | 300 | 450 | 675 | 1,013 | 1,519 | 2,278 |
+| FWD | 180 | 208 | 242 | 280 | 355 | 435 | 515 | 580 |
+| MID | 200 | 250 | 320 | 345 | 390 | 450 | 512 | 600 |
+| DEF | 195 | 220 | 248 | 278 | 320 | 365 | 420 | 450 |
+| GK  | 200 | 200 | 200 | 215 | 242 | 265 | 300 | 325 |
 
 (The sheet has no GK F tier, so GK F uses 200.)
 
 In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
-best-first and weights the i-th player by `0.85^i`, so a pile of depth pieces
+best-first and weights the i-th player by `0.5^i` (each extra player counts
+for half of the one before it), so a pile of depth pieces
 doesn't automatically beat one star. Within 5% counts as fair.
 
 The official list comes from `data/official-rankings-2026-27.json` (built from

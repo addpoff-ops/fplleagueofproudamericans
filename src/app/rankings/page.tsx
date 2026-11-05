@@ -3,7 +3,7 @@ import { listRankingSets } from "@/lib/rankings";
 import { PageTitle } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Rankings" };
+export const metadata = { title: "Player Rankings" };
 
 export default async function RankingsPage() {
   const sets = await listRankingSets();
