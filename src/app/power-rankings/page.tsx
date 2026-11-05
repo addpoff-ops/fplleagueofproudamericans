@@ -223,11 +223,10 @@ export default async function PowerRankingsPage() {
                                 {e.pts}
                               </span>
                               <span
-                                className={`flex w-14 shrink-0 items-center justify-center text-xs font-bold tabular-nums ${HEAT[e.tier]}`}
-                                title={`${POSITION_LABEL[p]} #${e.rank} · Tier ${e.tier}`}
+                                className={`flex w-10 shrink-0 items-center justify-center text-xs font-bold ${HEAT[e.tier]}`}
+                                title={`Tier ${e.tier}`}
                               >
-                                {e.rank}
-                                <span className="ml-1 text-[10px] font-semibold opacity-70">{e.tier}</span>
+                                {e.tier}
                               </span>
                             </li>
                           ))}
@@ -241,8 +240,8 @@ export default async function PowerRankingsPage() {
             })}
           </div>
           <p className="mt-3 text-xs text-zinc-500">
-            In each team&apos;s player list: the middle number is the player&apos;s value; the coloured cell is their rank
-            at that position in the official rankings, with their tier (green = top tiers, red = bottom).
+            In each team&apos;s player list: the number is the player&apos;s value; the coloured cell is their tier in the
+            official rankings (green = top tiers, red = bottom).
           </p>
         </>
       )}
