@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite for local development. For production (e.g. Vercel), switch the
+// provider to "postgresql" and point DATABASE_URL at a hosted Postgres DB.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model RankingSet {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  name        String
+  author      String
+  description String?
+  isOfficial  Boolean        @default(false)
+  editKeyHash String
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  entries     RankingEntry[]
+}
+
+model RankingEntry {
+  id       Int        @id @default(autoincrement())
+  setId    String
+  playerId String
+  rank     Int
+  tier     Int?
+  set      RankingSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+
+  @@unique([setId, playerId])
+  @@index([setId, rank])
+}

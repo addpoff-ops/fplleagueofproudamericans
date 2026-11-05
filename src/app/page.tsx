@@ -1,103 +1,77 @@
-import Image from "next/image";
+import Link from "next/link";
+import { getLeagueData } from "@/lib/league";
+import { Avatar, PageTitle } from "@/components/ui";
 
-export default function Home() {
+export const dynamic = "force-dynamic"; // Sleeper responses are still cached (see lib/sleeper.ts)
+
+export default async function StandingsPage() {
+  const { league, teams } = await getLeagueData();
+  const s = league.settings;
+  const playoffLine = s.playoff_teams;
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    <>
+      <PageTitle
+        title={league.name}
+        sub={`${league.season} season · ${s.num_teams} teams · Gameweek ${s.leg} · Top ${playoffLine} make the playoffs`}
+      />
+      <div className="card overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b border-zinc-200 dark:border-zinc-800">
+            <tr>
+              <th className="th w-10">#</th>
+              <th className="th">Team</th>
+              <th className="th text-center">W-L-T</th>
+              <th className="th text-right">PF</th>
+              <th className="th text-right">PA</th>
+              <th className="th text-right">Max PF</th>
+              <th className="th">Form</th>
+            </tr>
+          </thead>
+          <tbody>
+            {teams.map((t, i) => (
+              <tr
+                key={t.rosterId}
+                className={`border-b border-zinc-100 last:border-0 hover:bg-zinc-50 dark:border-zinc-800/60 dark:hover:bg-zinc-800/40 ${
+                  i === playoffLine - 1 ? "border-b-2 border-b-emerald-500/60 dark:border-b-emerald-500/60" : ""
+                }`}
+              >
+                <td className="td font-semibold text-zinc-500">{i + 1}</td>
+                <td className="td">
+                  <Link href={`/teams/${t.rosterId}`} className="flex items-center gap-2 hover:underline">
+                    <Avatar avatar={t.avatar} name={t.teamName} />
+                    <span>
+                      <span className="font-medium">{t.teamName}</span>
+                      <span className="block text-xs text-zinc-500">@{t.ownerName}</span>
+                    </span>
+                  </Link>
+                </td>
+                <td className="td text-center tabular-nums">
+                  {t.wins}-{t.losses}-{t.ties}
+                </td>
+                <td className="td text-right tabular-nums">{t.pointsFor.toFixed(2)}</td>
+                <td className="td text-right tabular-nums">{t.pointsAgainst.toFixed(2)}</td>
+                <td className="td text-right tabular-nums text-zinc-500">{t.maxPoints.toFixed(2)}</td>
+                <td className="td">
+                  <span className="flex gap-0.5">
+                    {t.record.slice(-5).split("").map((r, j) => (
+                      <span
+                        key={j}
+                        className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white ${
+                          r === "W" ? "bg-emerald-500" : r === "L" ? "bg-rose-500" : "bg-zinc-400"
+                        }`}
+                      >
+                        {r}
+                      </span>
+                    ))}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-xs text-zinc-500">Green line = playoff cutoff. Click a team to see its roster.</p>
+    </>
   );
 }
