@@ -16,6 +16,7 @@ interface Props {
   setter: { displayName: string; teamName: string | null; enabled: boolean; tokenOk: boolean } | null;
   runs: Run[];
   priorities: Record<string, string>;
+  schedulerLastRun: string | null;
 }
 
 // Copies the Sleeper session token from sleeper.com (run it while on a sleeper.com/leagues page).
@@ -33,13 +34,14 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   preview: { label: "Preview", cls: "bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300" },
 };
 
-export default function LineupSetterClient({ setter, runs, priorities }: Props) {
+export default function LineupSetterClient({ setter, runs, priorities, schedulerLastRun }: Props) {
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="grid content-start gap-6">
         {setter ? <Connected setter={setter} runs={runs} /> : <ConnectForm />}
       </div>
       <aside className="grid content-start gap-4 text-sm">
+        <SchedulerStatus lastRun={schedulerLastRun} />
         <div className="card p-4">
           <h2 className="mb-2 font-semibold">How it works</h2>
           <ol className="list-decimal space-y-1.5 pl-4 text-zinc-600 dark:text-zinc-400">
@@ -288,4 +290,27 @@ function Connected({ setter, runs }: { setter: NonNullable<Props["setter"]>; run
 function StatusPill({ status }: { status: string }) {
   const s = STATUS[status] ?? STATUS.no_change;
   return <span className={`rounded px-1.5 py-0.5 text-[11px] font-semibold ${s.cls}`}>{s.label}</span>;
+}
+
+function SchedulerStatus({ lastRun }: { lastRun: string | null }) {
+  // Rendered on the client so "minutes ago" uses the viewer's clock.
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => setNow(Date.now()), []);
+  const mins = lastRun && now ? Math.max(0, Math.round((now - new Date(lastRun).getTime()) / 60000)) : null;
+  const healthy = mins !== null && mins <= 20;
+  return (
+    <div className="card flex items-center gap-3 p-4">
+      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${lastRun === null ? "bg-zinc-400" : healthy ? "bg-emerald-500" : "bg-amber-500"}`} />
+      <div>
+        <div className="font-semibold">Automatic checks</div>
+        <div className="text-zinc-500">
+          {lastRun === null
+            ? "Haven't run yet."
+            : mins === null
+              ? "…"
+              : `Last ran ${mins === 0 ? "just now" : `${mins} min ago`}${healthy ? "" : " — this should be every few minutes"}.`}
+        </div>
+      </div>
+    </div>
+  );
 }

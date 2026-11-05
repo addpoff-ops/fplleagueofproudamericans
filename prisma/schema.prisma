@@ -72,3 +72,11 @@ model LineupRun {
   @@index([setterId, createdAt])
   @@index([setterId, week, blockStart])
 }
+
+/// When the scheduler last called the Lineup Setter (proves the GitHub
+/// schedule and CRON_SECRET are working).
+model SchedulerHeartbeat {
+  id         String   @id
+  lastRunAt  DateTime
+  lastResult String
+}

@@ -12,6 +12,7 @@ export const metadata = { title: "Lineup Setter" };
 export default async function LineupSetterPage() {
   const configured = lineupConfigured();
   const setter = configured ? await currentSetter() : null;
+  const heartbeat = configured ? await prisma.schedulerHeartbeat.findUnique({ where: { id: "lineup-setter" } }) : null;
 
   let teamName: string | null = null;
   let runs: { id: string; week: number; blockStart: string; status: string; message: string; seen: boolean; createdAt: string }[] = [];
@@ -54,6 +55,7 @@ export default async function LineupSetterPage() {
           }
           runs={runs}
           priorities={PRIORITY_LABEL}
+          schedulerLastRun={heartbeat?.lastRunAt.toISOString() ?? null}
         />
       )}
     </>
