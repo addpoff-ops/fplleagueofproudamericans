@@ -1,8 +1,9 @@
 // Player values. Pure functions, safe to import from client components.
 //
-// Every page (trade calculator, rankings, team pages, Power Rankings) values a
-// player by position + tier using the original "Ranking Multiplier" values from
-// the FWD/MID/DEF/GK (A) sheets of FPL_26-27_Analysis_Sheet.xlsx.
+// Players are valued by position + tier using the original "Ranking
+// Multiplier" values from the FWD/MID/DEF/GK (A) sheets of
+// FPL_26-27_Analysis_Sheet.xlsx. Power Rankings uses them as-is; trade values
+// (trade calculator, Player Rankings, team pages) are 3x those.
 
 export const POSITIONS = ["F", "M", "D", "GK"] as const;
 export type Pos = (typeof POSITIONS)[number];
@@ -23,8 +24,17 @@ export const SHEET_TIER_VALUES: Record<Pos, Record<Tier, number>> = {
   GK: { S: 325, A: 300, B: 265, C: 242, D: 215, E: 200, F: 200, Z: 200 },
 };
 
-/** Values used everywhere on the site. */
-export const TIER_VALUES = SHEET_TIER_VALUES;
+/** Every trade value is the sheet value times this. */
+export const TRADE_MULTIPLIER = 3;
+
+/** Trade values (trade calculator, Player Rankings, team pages). Power
+ *  Rankings uses SHEET_TIER_VALUES directly, unmultiplied. */
+export const TIER_VALUES = Object.fromEntries(
+  Object.entries(SHEET_TIER_VALUES).map(([pos, tiers]) => [
+    pos,
+    Object.fromEntries(Object.entries(tiers).map(([t, v]) => [t, v * TRADE_MULTIPLIER])),
+  ]),
+) as Record<Pos, Record<Tier, number>>;
 
 export const isPos = (x: unknown): x is Pos => POSITIONS.includes(x as Pos);
 export const isTier = (x: unknown): x is Tier => TIERS.includes(x as Tier);

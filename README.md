@@ -89,9 +89,8 @@ edit or delete any list). Keys are stored bcrypt-hashed.
 ## Rankings & trade values (`src/lib/value.ts`)
 
 Each list has four sections (**FWD, MID, DEF, GK**). Players are ranked
-within their position and given a tier (S, A–F, Z). Every page (trade
-calculator, rankings, team pages, Power Rankings) values a player by position
-and tier using the original values from the FWD/MID/DEF/GK (A) sheets:
+within their position and given a tier (S, A–F, Z). Players are valued by
+position and tier using the original values from the FWD/MID/DEF/GK (A) sheets:
 
 | | Z | F | E | D | C | B | A | S |
 |---|---|---|---|---|---|---|---|---|
@@ -100,7 +99,9 @@ and tier using the original values from the FWD/MID/DEF/GK (A) sheets:
 | DEF | 195 | 220 | 248 | 278 | 320 | 365 | 420 | 450 |
 | GK  | 200 | 200 | 200 | 215 | 242 | 265 | 300 | 325 |
 
-(The sheet has no GK F tier, so GK F uses 200.)
+(The sheet has no GK F tier, so GK F uses 200.) Power Rankings uses these
+values as-is. Trade values (trade calculator, Player Rankings, team pages) are
+these values ×3 (`TRADE_MULTIPLIER`).
 
 In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
 best-first and weights the i-th player by `0.5^i` (each extra player counts
