@@ -4,7 +4,8 @@
 // of FPL_26-27_Analysis_Sheet.xlsx:
 //   - Z keeps the sheet's original value for that position.
 //   - F is the sheet's original F value for that position.
-//   - Every tier above F is worth TIER_GROWTH (1.7x) more than the one below it.
+//   - Every tier above F is worth TIER_GROWTH[pos] times the one below it
+//     (FWD 1.85x, MID 1.7x, DEF 1.7x, GK 1.5x).
 // GK has no F tier in the sheet, so GK uses 200 (the sheet's GK E/Z value).
 
 export const POSITIONS = ["F", "M", "D", "GK"] as const;
@@ -14,8 +15,8 @@ export const POSITION_LABEL: Record<Pos, string> = { F: "FWD", M: "MID", D: "DEF
 export const TIERS = ["S", "A", "B", "C", "D", "E", "F", "Z"] as const;
 export type Tier = (typeof TIERS)[number];
 
-/** Multiplier between consecutive tiers from F up to S. */
-export const TIER_GROWTH = 1.7;
+/** Multiplier between consecutive tiers from F up to S, per position. */
+export const TIER_GROWTH: Record<Pos, number> = { F: 1.85, M: 1.7, D: 1.7, GK: 1.5 };
 
 /** Original per-position values from the (A) sheets. */
 const SHEET_VALUES = {
@@ -29,7 +30,7 @@ function buildScale(pos: Pos): Record<Tier, number> {
   const { Z, F } = SHEET_VALUES[pos];
   const up = ["F", "E", "D", "C", "B", "A", "S"] as const; // F → S, ascending
   const scale = { Z } as Record<Tier, number>;
-  up.forEach((t, i) => (scale[t] = Math.round(F * TIER_GROWTH ** i)));
+  up.forEach((t, i) => (scale[t] = Math.round(F * TIER_GROWTH[pos] ** i)));
   return scale;
 }
 
