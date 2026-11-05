@@ -43,13 +43,13 @@ within their position and given a tier (S, A–F, Z). Value depends on position
 and tier, based on the original values in the FWD/MID/DEF/GK (A) sheets:
 
 - **Z** keeps the sheet's original value. **F** is the sheet's original F value.
-- Each tier above F is worth more than the one below it (`TIER_GROWTH`): **1.78×** for FWD, **1.7×** for MID and DEF, **1.5×** for GK.
+- Each tier above F is worth more than the one below it (`TIER_GROWTH`): **1.78×** for FWD, **1.7×** for MID, **1.57×** for DEF, **1.5×** for GK.
 
 | | Z | F | E | D | C | B | A | S |
 |---|---|---|---|---|---|---|---|---|
 | FWD | 180 | 208 | 370 | 659 | 1,173 | 2,088 | 3,717 | 6,616 |
 | MID | 200 | 250 | 425 | 722 | 1,228 | 2,088 | 3,550 | 6,034 |
-| DEF | 195 | 220 | 374 | 636 | 1,081 | 1,837 | 3,124 | 5,310 |
+| DEF | 220 | 220 | 345 | 542 | 851 | 1,337 | 2,099 | 3,295 |
 | GK  | 200 | 200 | 300 | 450 | 675 | 1,013 | 1,519 | 2,278 |
 
 (The sheet has no GK F tier, so GK F uses 200.)

@@ -5,7 +5,7 @@
 //   - Z keeps the sheet's original value for that position.
 //   - F is the sheet's original F value for that position.
 //   - Every tier above F is worth TIER_GROWTH[pos] times the one below it
-//     (FWD 1.78x, MID 1.7x, DEF 1.7x, GK 1.5x).
+//     (FWD 1.78x, MID 1.7x, DEF 1.57x, GK 1.5x).
 // GK has no F tier in the sheet, so GK uses 200 (the sheet's GK E/Z value).
 
 export const POSITIONS = ["F", "M", "D", "GK"] as const;
@@ -16,13 +16,13 @@ export const TIERS = ["S", "A", "B", "C", "D", "E", "F", "Z"] as const;
 export type Tier = (typeof TIERS)[number];
 
 /** Multiplier between consecutive tiers from F up to S, per position. */
-export const TIER_GROWTH: Record<Pos, number> = { F: 1.78, M: 1.7, D: 1.7, GK: 1.5 };
+export const TIER_GROWTH: Record<Pos, number> = { F: 1.78, M: 1.7, D: 1.57, GK: 1.5 };
 
 /** Original per-position values from the (A) sheets. */
 const SHEET_VALUES = {
   F: { Z: 180, F: 208 },
   M: { Z: 200, F: 250 },
-  D: { Z: 195, F: 220 },
+  D: { Z: 220, F: 220 },
   GK: { Z: 200, F: 200 },
 } as const;
 
