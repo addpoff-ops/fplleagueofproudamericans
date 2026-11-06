@@ -4,12 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { DEPTH_FACTOR, POSITION_LABEL, scoreSide, verdict, type RankedEntry } from "@/lib/value";
 import { POSITION_STYLES } from "@/lib/positions";
 import type { SlimPlayer } from "../rankings/[slug]/RankingBoard";
+import type { PastTrade } from "@/lib/trades";
 
 interface Props {
   sets: { slug: string; name: string; author: string; isOfficial: boolean }[];
   initialSlug: string;
   teams: { rosterId: number; name: string; players: string[] }[];
   pool: SlimPlayer[];
+  pastTrades: PastTrade[];
+  tradePlayers: Record<string, { name: string; pos: string; team: string | null }>;
 }
 
 interface SideState {
@@ -17,7 +20,7 @@ interface SideState {
   players: string[];
 }
 
-export default function TradeCalculator({ sets, initialSlug, teams, pool }: Props) {
+export default function TradeCalculator({ sets, initialSlug, teams, pool, pastTrades, tradePlayers }: Props) {
   const [slug, setSlug] = useState(initialSlug);
   const [ranks, setRanks] = useState<Map<string, RankedEntry> | null>(null);
   const [sides, setSides] = useState<[SideState, SideState]>([
@@ -152,7 +155,133 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool }: Prop
           </div>
         )}
       </div>
+
+      <PastTrades
+        trades={pastTrades}
+        teams={teams}
+        players={tradePlayers}
+        ranks={ranks}
+        valueOf={valueOf}
+        onOpen={(t) => {
+          // Load a two-team trade into the calculator: each side sends what the other received.
+          const [a, b] = t.sides;
+          setSides([
+            { rosterId: a.rosterId, players: b.receives },
+            { rosterId: b.rosterId, players: a.receives },
+          ]);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
     </div>
+  );
+}
+
+/** Every completed trade this season, scored with the selected rankings list. */
+function PastTrades({
+  trades,
+  teams,
+  players,
+  ranks,
+  valueOf,
+  onOpen,
+}: {
+  trades: PastTrade[];
+  teams: Props["teams"];
+  players: Props["tradePlayers"];
+  ranks: Map<string, RankedEntry> | null;
+  valueOf: (id: string) => number;
+  onOpen: (t: PastTrade) => void;
+}) {
+  const teamName = (rid: number) => teams.find((t) => t.rosterId === rid)?.name ?? `Team ${rid}`;
+  return (
+    <section className="mt-4">
+      <h2 className="mb-1 text-xl font-bold tracking-tight">Past trades</h2>
+      <p className="mb-4 text-sm text-zinc-500">
+        Every completed trade this season, scored with the rankings list selected above (today&apos;s values). FAAB and
+        draft picks are shown but not valued.
+      </p>
+      {trades.length === 0 ? (
+        <div className="card p-6 text-center text-sm text-zinc-500">No trades yet this season.</div>
+      ) : (
+        <div className="grid gap-3">
+          {trades.map((t) => {
+            const scored = t.sides.map((s) => ({ ...s, score: scoreSide(s.receives.map(valueOf)) }));
+            // A side that got no players (only FAAB/picks) can't be scored, since those aren't valued.
+            const unscorable = scored.some((s) => s.receives.length === 0);
+            const two = scored.length === 2 && !unscorable;
+            // Who came out ahead: whoever received more (adjusted) value.
+            const v = two ? verdict(scored[0].score.adjusted, scored[1].score.adjusted) : null;
+            const best = unscorable ? Infinity : Math.max(...scored.map((s) => s.score.adjusted));
+            const buyer = scored.find((s) => s.receives.length > 0);
+            const seller = scored.find((s) => s.receives.length === 0);
+            const bought = buyer && buyer.receives.length === 1 ? "a player" : `${buyer?.receives.length ?? 0} players`;
+            const faab = seller?.faabIn ? ` for $${seller.faabIn} FAAB` : "";
+            const result = !ranks
+              ? "Scoring…"
+              : unscorable && buyer && seller
+                ? `${teamName(buyer.rosterId)} bought ${bought} from ${teamName(seller.rosterId)}${faab} (not scored)`
+                : two
+                ? v!.winner === null
+                  ? `${v!.label}`
+                  : `${v!.label}: ${teamName(scored[v!.winner === "A" ? 0 : 1].rosterId)} won by ${v!.pct}%`
+                : `${teamName(scored.find((s) => s.score.adjusted === best)!.rosterId)} got the most value`;
+            return (
+              <div key={t.id} className="card p-4">
+                <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="text-xs text-zinc-500">
+                    GW{t.week} · {new Date(t.created).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </span>
+                  <span className="font-semibold">{result}</span>
+                  {t.sides.length === 2 && (
+                    <button className="btn-ghost ml-auto py-1 text-xs" onClick={() => onOpen(t)}>
+                      Open in calculator ↑
+                    </button>
+                  )}
+                </div>
+                <div className={`grid gap-3 ${scored.length > 1 ? "sm:grid-cols-2" : ""}`}>
+                  {scored.map((s) => {
+                    const won = ranks && s.score.adjusted === best && best > 0 && !(two && v!.winner === null);
+                    return (
+                      <div
+                        key={s.rosterId}
+                        className={`rounded-lg border p-3 ${won ? "border-emerald-500/70 bg-emerald-50/50 dark:bg-emerald-500/10" : "border-zinc-200 dark:border-zinc-800"}`}
+                      >
+                        <div className="mb-2 flex items-baseline justify-between gap-2">
+                          <span className="font-medium">{teamName(s.rosterId)} received</span>
+                          <span className="text-sm font-semibold tabular-nums">{ranks ? s.score.adjusted.toLocaleString() : "…"}</span>
+                        </div>
+                        <ul className="space-y-1 text-sm">
+                          {s.receives.map((id) => {
+                            const p = players[id];
+                            const r = ranks?.get(id);
+                            return (
+                              <li key={id} className="flex items-center gap-2">
+                                <Pos pos={r?.pos ?? p?.pos ?? "?"} />
+                                <span>{p?.name ?? id}</span>
+                                <span className="text-xs text-zinc-500">{p?.team ?? ""}</span>
+                                <span className="ml-auto text-xs tabular-nums text-zinc-500">
+                                  {r ? `${r.tier} · ${valueOf(id).toLocaleString()}` : ranks ? "unranked" : ""}
+                                </span>
+                              </li>
+                            );
+                          })}
+                          {s.faabIn > 0 && <li className="text-xs text-zinc-500">+ ${s.faabIn} FAAB</li>}
+                          {s.receives.length === 0 && s.faabIn === 0 && <li className="text-xs text-zinc-500">Nothing</li>}
+                        </ul>
+                        {ranks && s.receives.length > 1 && (
+                          <div className="mt-2 text-xs text-zinc-500">Raw total {s.score.raw.toLocaleString()}</div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {t.picks > 0 && <p className="mt-2 text-xs text-zinc-500">Also included {t.picks} draft pick(s).</p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 

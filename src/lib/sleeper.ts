@@ -116,6 +116,22 @@ export const getLeague = (id = LEAGUE_ID) => get<SleeperLeague>(`/league/${id}`)
 export const getUsers = (id = LEAGUE_ID) => get<SleeperUser[]>(`/league/${id}/users`);
 export const getRosters = (id = LEAGUE_ID) => get<SleeperRoster[]>(`/league/${id}/rosters`);
 export const getState = () => get<SleeperState>(`/state/${SPORT}`);
+export interface SleeperTransaction {
+  transaction_id: string;
+  type: "trade" | "waiver" | "free_agent" | "commissioner";
+  status: "complete" | "failed" | "pending";
+  created: number;
+  leg: number;
+  roster_ids: number[];
+  adds: Record<string, number> | null;
+  drops: Record<string, number> | null;
+  draft_picks: unknown[] | null;
+  waiver_budget: { sender: number; receiver: number; amount: number }[] | null;
+}
+
+export const getTransactions = async (leg: number, id = LEAGUE_ID) =>
+  (await get<SleeperTransaction[] | null>(`/league/${id}/transactions/${leg}`)) ?? [];
+
 export const getDraftPicks = (draftId: string) =>
   get<SleeperDraftPick[]>(`/draft/${draftId}/picks`, 3600);
 

@@ -1,6 +1,7 @@
 import { getLeagueData } from "@/lib/league";
 import { AVERAGE_SLUG, listRankingSets, playerPool, POINTS_SLUG } from "@/lib/rankings";
 import { PageTitle } from "@/components/ui";
+import { getPastTrades } from "@/lib/trades";
 import TradeCalculator from "./TradeCalculator";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,7 @@ export const metadata = { title: "Trade Calculator" };
 
 export default async function TradePage({ searchParams }: { searchParams: Promise<{ rankings?: string }> }) {
   const { rankings } = await searchParams;
-  const [{ teams }, pool, sets] = await Promise.all([getLeagueData(), playerPool(), listRankingSets()]);
+  const [{ teams }, pool, sets, past] = await Promise.all([getLeagueData(), playerPool(), listRankingSets(), getPastTrades()]);
   const initialSlug =
     rankings === AVERAGE_SLUG || rankings === POINTS_SLUG ? rankings : (sets.find((s) => s.slug === rankings) ?? sets[0])?.slug;
 
@@ -33,6 +34,8 @@ export default async function TradePage({ searchParams }: { searchParams: Promis
           initialSlug={initialSlug!}
           teams={teams.map((t) => ({ rosterId: t.rosterId, name: t.teamName, players: t.players }))}
           pool={pool.map(({ id, name, pos, positions, team, injury }) => ({ id, name, pos, positions, team, injury }))}
+          pastTrades={past.trades}
+          tradePlayers={past.info}
         />
       )}
     </>
