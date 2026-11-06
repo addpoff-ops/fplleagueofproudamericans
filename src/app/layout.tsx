@@ -15,8 +15,8 @@ const NAV = [
   { href: "/rankings", label: "Player Rankings" },
   { href: "/trade", label: "Trade Calculator" },
   { href: "/season-simulator", label: "Season Simulator" },
-  { href: "/lineup-setter", label: "Lineup Setter" },
-  { href: "/draft", label: "Draft" },
+  { href: "/lineup-setter", label: "Lineup Setter Tool" },
+  { href: "/draft", label: "Draft Board" },
 ];
 
 /** Unread Lineup Setter notifications for whoever is viewing (0 if not connected). */
@@ -47,12 +47,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           {/* One row: logo + title, then the tabs. Tabs scale with screen width and
               scroll sideways on narrow screens instead of wrapping. */}
           <div className="mx-auto flex max-w-[1500px] items-center gap-x-5 px-4 py-4 sm:py-5 xl:gap-x-8">
-            <Link href="/" className="flex flex-none items-center gap-3 text-xl font-bold tracking-tight xl:text-[24px] 2xl:text-[28px]">
+            <Link href="/" className="flex flex-none items-center gap-3 text-xl font-bold tracking-tight lg:text-lg xl:text-[24px] 2xl:text-[28px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo.webp" alt="" width={48} height={48} className="h-10 w-10 rounded-full object-cover ring-2 ring-zinc-200 xl:h-12 xl:w-12 dark:ring-zinc-700" />
               <span className="whitespace-nowrap">Proud Americans FPL</span>
             </Link>
-            <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto whitespace-nowrap font-['Times_New_Roman',Times,serif] text-[15px] font-bold [scrollbar-width:none] lg:text-[15px] xl:gap-1 xl:text-[17px] 2xl:text-[20px]">
+            <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto whitespace-nowrap font-['Times_New_Roman',Times,serif] text-[15px] font-bold [scrollbar-width:none] lg:text-[14px] xl:gap-1 xl:text-[17px] 2xl:text-[20px]">
               {NAV.map((n) => (
                 <Link
                   key={n.href}
