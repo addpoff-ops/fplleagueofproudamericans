@@ -341,8 +341,8 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
                       <span className="order-2 text-xs font-semibold text-zinc-500">vs</span>
                     </div>
                     <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-950/70">
-                      <div className="bg-red-600" style={{ width: `${homePct}%` }} />
-                      <div className="bg-yellow-400" style={{ width: `${100 - homePct}%` }} />
+                      <div className="bg-[#4c1d95]" style={{ width: `${homePct}%` }} />
+                      <div className="bg-[#2f5d2a]" style={{ width: `${100 - homePct}%` }} />
                     </div>
                   </summary>
 
