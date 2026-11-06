@@ -11,17 +11,25 @@ export const metadata = { title: "Power Rankings" };
 // Display order for positions.
 const COLS: Pos[] = ["F", "M", "D", "GK"];
 
+// Position colours: FWD green, MID blue, DEF orange, GK white.
 const SEGMENT: Record<Pos, string> = {
-  F: "bg-rose-400 dark:bg-rose-500",
-  M: "bg-emerald-400 dark:bg-emerald-500",
-  D: "bg-sky-400 dark:bg-sky-500",
-  GK: "bg-amber-400 dark:bg-amber-500",
+  F: "bg-green-500",
+  M: "bg-blue-500",
+  D: "bg-orange-500",
+  GK: "bg-white ring-1 ring-inset ring-zinc-300 dark:ring-0",
+};
+// Rank numbers on the bar: white on blue, dark elsewhere, so each stays readable.
+const SEGMENT_TEXT: Record<Pos, string> = {
+  F: "text-zinc-950/85",
+  M: "text-white",
+  D: "text-zinc-950/85",
+  GK: "text-zinc-950/85",
 };
 const PILL: Record<Pos, string> = {
-  F: "bg-rose-100 text-rose-800 ring-rose-400/60 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-500/50",
-  M: "bg-emerald-100 text-emerald-800 ring-emerald-400/60 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-500/50",
-  D: "bg-sky-100 text-sky-800 ring-sky-400/60 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-500/50",
-  GK: "bg-amber-100 text-amber-800 ring-amber-400/60 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-500/50",
+  F: "bg-green-100 text-green-800 ring-green-500/60 dark:bg-green-500/15 dark:text-green-300 dark:ring-green-500/50",
+  M: "bg-blue-100 text-blue-800 ring-blue-500/60 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-blue-500/50",
+  D: "bg-orange-100 text-orange-800 ring-orange-500/60 dark:bg-orange-500/15 dark:text-orange-300 dark:ring-orange-500/50",
+  GK: "bg-white text-zinc-800 ring-zinc-300 dark:bg-white/15 dark:text-white dark:ring-white/50",
 };
 // Green (best tiers) through red (worst) for the per-player rank cells.
 const HEAT: Record<Tier, string> = {
@@ -197,7 +205,7 @@ export default async function PowerRankingsPage({ searchParams }: { searchParams
                         {COLS.map((p) => (
                           <div
                             key={p}
-                            className={`flex min-w-5 items-center justify-center border-r border-white/40 text-[10px] font-bold text-zinc-900/80 last:border-r-0 dark:border-zinc-950/40 ${SEGMENT[p]}`}
+                            className={`flex min-w-5 items-center justify-center border-r border-white/40 text-[10px] font-bold last:border-r-0 dark:border-zinc-950/40 ${SEGMENT[p]} ${SEGMENT_TEXT[p]}`}
                             style={{ width: `${(r.byPos[p] / r.total) * 100}%` }}
                             title={`${POSITION_LABEL[p]}: ${r.byPos[p].toLocaleString()} pts, ranked ${posRank(p, r.byPos[p])} of ${rows.length}`}
                           >
