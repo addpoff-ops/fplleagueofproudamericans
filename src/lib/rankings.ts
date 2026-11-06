@@ -179,3 +179,14 @@ export async function averageEntries(): Promise<RankedEntry[]> {
   }
   return out;
 }
+
+/** Slug the trade calculator uses for the "Total Points" option. */
+export const POINTS_SLUG = "total-points";
+
+/** Total Points values as trade-calculator entries (trade values = sheet value x TRADE_MULTIPLIER). */
+export async function pointsEntries(): Promise<RankedEntry[]> {
+  const values = await pointsValues();
+  return [...values.entries()]
+    .map(([playerId, v]) => ({ playerId, pos: v.pos, rank: v.rank!, tier: v.tier, value: v.pts * TRADE_MULTIPLIER }))
+    .sort((a, b) => POSITIONS.indexOf(a.pos) - POSITIONS.indexOf(b.pos) || a.rank - b.rank);
+}

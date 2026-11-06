@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { canEdit } from "@/lib/keys";
-import { AVERAGE_SLUG, averageEntries, getEntries } from "@/lib/rankings";
+import { AVERAGE_SLUG, averageEntries, getEntries, POINTS_SLUG, pointsEntries } from "@/lib/rankings";
 import { isPos, isTier } from "@/lib/value";
 
 type Ctx = { params: Promise<{ slug: string }> };
@@ -10,6 +10,8 @@ export async function GET(_req: Request, { params }: Ctx) {
   const { slug } = await params;
   if (slug === AVERAGE_SLUG)
     return NextResponse.json({ slug, name: "Average of all rankings", entries: await averageEntries() });
+  if (slug === POINTS_SLUG)
+    return NextResponse.json({ slug, name: "Total Points", entries: await pointsEntries() });
   const set = await prisma.rankingSet.findUnique({
     where: { slug },
     select: { slug: true, name: true, author: true, description: true, isOfficial: true, updatedAt: true },
