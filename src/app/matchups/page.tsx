@@ -219,7 +219,8 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
                           <div className="min-w-0">
                             <div className="truncate font-semibold">{side.team.teamName}</div>
                             <div className="truncate text-xs text-zinc-500">
-                              {side.team.wins}-{side.team.losses}-{side.team.ties} · {side.shape}
+                              Record: {side.team.wins}-{side.team.losses}-{side.team.ties}
+                              <span className="ml-3">Formation: {side.shape}</span>
                             </div>
                           </div>
                           <div className={`ml-auto text-2xl font-bold tabular-nums ${si === 1 ? "ml-0 mr-auto" : ""}`}>{fmt(side.total)}</div>
