@@ -46,8 +46,11 @@ published, the site benches any of their starters who aren't in their club's
 starting XI. Each is replaced by the best eligible bench player, in this order:
 A) starting in the same kickoff window, B) projected above 0 in a later game,
 C) any other available player (ties go to the higher projection). Players whose
-games have kicked off are never moved. Each change appears as a notification
-on the page.
+games have kicked off are never moved. A replacement can play a different
+position as long as the lineup still follows the formation rules (1 GK, 3–5 DEF,
+3–5 MID, 1–3 FWD; keepers only replace keepers): the formation changes to match
+and players are reshuffled between flex slots so each sits in a slot their
+position allows. Each change appears as a notification on the page.
 
 **How it works:** team sheets and kickoff times come from Sleeper's public
 `/scores` feed. Lineups are read and saved through Sleeper's *private* GraphQL

@@ -58,6 +58,12 @@ export default function LineupSetterClient({ setter, runs, priorities, scheduler
               </ul>
               Ties go to the higher projection. Players whose games have kicked off are locked and never moved.
             </li>
+            <li>
+              A replacement can play a different position, as long as the lineup still follows the formation rules: 1
+              goalkeeper, 3–5 defenders, 3–5 midfielders and 1–3 forwards (goalkeepers are only replaced by goalkeepers). The
+              formation changes to match, and players are moved between flex spots so everyone is in a slot for their
+              position.
+            </li>
             <li>Every change shows up here as a notification.</li>
           </ol>
         </div>

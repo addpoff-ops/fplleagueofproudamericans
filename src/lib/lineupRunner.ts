@@ -20,6 +20,8 @@ function describe(plan: Plan, data: Data) {
   const parts = plan.swaps.map(
     (s) => `Benched ${name(data, s.out)} (not in the starting XI), started ${name(data, s.in)} (${PRIORITY_LABEL[s.priority]})`,
   );
+  if (plan.swaps.length && plan.formationAfter !== plan.formationBefore)
+    parts.push(`Formation changed from ${plan.formationBefore} to ${plan.formationAfter}`);
   for (const u of plan.unresolved) parts.push(`${name(data, u.out)} isn't starting, but no eligible replacement was available`);
   return parts.join(". ") + ".";
 }

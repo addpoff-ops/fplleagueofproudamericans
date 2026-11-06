@@ -116,7 +116,7 @@ export const PRIORITY_LABEL: Record<Priority, string> = {
 };
 
 export interface Swap {
-  slot: string;
+  slot: string; // the slot the incoming player ends up in
   out: string;
   in: string;
   priority: Priority;
@@ -128,6 +128,8 @@ export interface Plan {
   newStarters: string[];
   swaps: Swap[];
   unresolved: { slot: string; out: string }[]; // non-starters with no valid replacement
+  formationBefore: string; // e.g. "4-4-2" (DEF-MID-FWD)
+  formationAfter: string;
 }
 
 interface PlanInput {
@@ -142,6 +144,79 @@ interface PlanInput {
   now?: number;
 }
 
+/** Formation rules: 1 GK, 3-5 DEF, 3-5 MID, 1-3 FWD. */
+const FORMATION_LIMITS: Record<string, [number, number]> = { GK: [1, 1], D: [3, 5], M: [3, 5], F: [1, 3] };
+
+function positionCounts(ids: string[], pos: (id: string) => string) {
+  const c: Record<string, number> = { GK: 0, D: 0, M: 0, F: 0 };
+  for (const id of ids) c[pos(id)] = (c[pos(id)] ?? 0) + 1;
+  return c;
+}
+
+export function formationOf(ids: string[], pos: (id: string) => string) {
+  const c = positionCounts(ids, pos);
+  return `${c.D}-${c.M}-${c.F}`;
+}
+
+const followsFormation = (ids: string[], pos: (id: string) => string) => {
+  const c = positionCounts(ids, pos);
+  return Object.entries(FORMATION_LIMITS).every(([p, [lo, hi]]) => c[p] >= lo && c[p] <= hi);
+};
+
+/**
+ * Put the starters into lineup slots so every player sits in a slot their
+ * position is eligible for. Locked players (their game has kicked off) keep
+ * their current slot; everyone else moves as little as possible.
+ * Returns null if no valid arrangement exists.
+ */
+export function assignSlots(
+  slots: string[],
+  current: string[], // current slot-ordered starters ("0" = empty)
+  ids: string[], // the starters to place
+  pos: (id: string) => string,
+  locked: (id: string) => boolean = () => false,
+): string[] | null {
+  const result: string[] = slots.map(() => "0");
+  const used = new Set<string>();
+  for (let k = 0; k < slots.length; k++) {
+    const id = current[k];
+    if (id && id !== "0" && ids.includes(id) && locked(id)) {
+      if (!(SLOT_ELIGIBLE[slots[k]] ?? []).includes(pos(id))) return null;
+      result[k] = id;
+      used.add(id);
+    }
+  }
+  const toPlace = ids.filter((id) => !used.has(id));
+  const open = slots.map((_, k) => k).filter((k) => result[k] === "0");
+  if (toPlace.length > open.length) return null;
+  let best: { arr: string[]; moves: number } | null = null;
+  const arr = [...result];
+  const left = new Set(toPlace);
+  const dfs = (j: number, moves: number) => {
+    if (best && moves >= best.moves) return;
+    if (j === open.length) {
+      if (left.size === 0) best = { arr: [...arr], moves };
+      return;
+    }
+    if (left.size > open.length - j) return; // not enough slots left
+    const k = open[j];
+    const eligible = SLOT_ELIGIBLE[slots[k]] ?? [];
+    // Try the current occupant first, then everyone else.
+    const order = [...left].sort((a, b) => Number(b === current[k]) - Number(a === current[k]));
+    for (const id of order) {
+      if (!eligible.includes(pos(id))) continue;
+      left.delete(id);
+      arr[k] = id;
+      dfs(j + 1, moves + (current[k] === id ? 0 : 1));
+      arr[k] = "0";
+      left.add(id);
+    }
+    if (left.size < open.length - j) dfs(j + 1, moves); // leave this slot empty
+  };
+  dfs(0, 0);
+  return best ? (best as { arr: string[] }).arr : null;
+}
+
 export function planWindow(i: PlanInput): Plan {
   const now = i.now ?? Date.now();
   const gameOfClub = new Map<string, Game>();
@@ -149,6 +224,7 @@ export function planWindow(i: PlanInput): Plan {
     gameOfClub.set(g.home, g);
     gameOfClub.set(g.away, g);
   }
+  const pos = (id: string) => i.playerInfo[id]?.pos ?? "";
   const gameOf = (id: string) => {
     const club = i.playerInfo[id]?.team;
     return club ? gameOfClub.get(club) : undefined;
@@ -169,17 +245,20 @@ export function planWindow(i: PlanInput): Plan {
     return !!g && (g.start <= now || g.status !== "pre_game");
   };
 
-  const starters = [...i.starters];
-  const onField = new Set(starters.filter((s) => s && s !== "0"));
+  const original = [...i.starters];
+  let lineup = original.filter((s) => s && s !== "0"); // the starting XI as a set
   const reserve = new Set(i.reserve);
-  const bench = new Set(i.players.filter((p) => !onField.has(p) && !reserve.has(p)));
+  const bench = new Set(i.players.filter((p) => !lineup.includes(p) && !reserve.has(p)));
+  // A replacement must leave a lineup that fits the slots and the formation rules.
+  // (If the current lineup already breaks the formation rules, only the slots are required.)
+  const startsValid = followsFormation(lineup, pos);
+  const valid = (ids: string[]) =>
+    (!startsValid || followsFormation(ids, pos)) && assignSlots(i.slots, original, ids, pos, locked) !== null;
 
   // Starters in this window who aren't in their club's starting XI.
   const needs = i.slots
-    .map((slot, idx) => ({ slot, idx, out: starters[idx] }))
-    .filter((n) => n.out && n.out !== "0" && inWindow(n.out) && confirmedOut(n.out))
-    // Fill single-position slots first, then the most restrictive flex slots.
-    .sort((a, b) => (SLOT_ELIGIBLE[a.slot]?.length ?? 9) - (SLOT_ELIGIBLE[b.slot]?.length ?? 9));
+    .map((slot, idx) => ({ slot, idx, out: original[idx] }))
+    .filter((n) => n.out && n.out !== "0" && inWindow(n.out) && confirmedOut(n.out));
 
   const priorityOf = (id: string): Priority | null => {
     const g = gameOf(id);
@@ -189,25 +268,38 @@ export function planWindow(i: PlanInput): Plan {
     return "C";
   };
 
-  const swaps: Swap[] = [];
+  const chosen: { out: string; in: string; priority: Priority; proj: number }[] = [];
   const unresolved: Plan["unresolved"] = [];
   for (const n of needs) {
-    const eligible = SLOT_ELIGIBLE[n.slot] ?? [];
+    // Keepers are replaced by keepers; outfield players by any outfield position
+    // that keeps the formation legal (the formation changes to match).
+    const outfield = pos(n.out) !== "GK";
     const best = [...bench]
-      .filter((id) => eligible.includes(i.playerInfo[id]?.pos ?? ""))
+      .filter((id) => (outfield ? ["F", "M", "D"].includes(pos(id)) : pos(id) === "GK"))
       .map((id) => ({ id, pr: priorityOf(id), proj: i.proj.get(id) ?? 0 }))
       .filter((c): c is { id: string; pr: Priority; proj: number } => c.pr !== null)
-      .sort((a, b) => a.pr.localeCompare(b.pr) || b.proj - a.proj)[0];
+      .sort((a, b) => a.pr.localeCompare(b.pr) || b.proj - a.proj)
+      .find((c) => valid(lineup.map((id) => (id === n.out ? c.id : id))));
     if (!best) {
       unresolved.push({ slot: n.slot, out: n.out });
       continue;
     }
-    starters[n.idx] = best.id;
+    lineup = lineup.map((id) => (id === n.out ? best.id : id));
     bench.delete(best.id);
     bench.add(n.out);
-    swaps.push({ slot: n.slot, out: n.out, in: best.id, priority: best.pr, proj: best.proj });
+    chosen.push({ out: n.out, in: best.id, priority: best.pr, proj: best.proj });
   }
-  return { windowStart: i.window.start, newStarters: starters, swaps, unresolved };
+
+  const newStarters = chosen.length ? (assignSlots(i.slots, original, lineup, pos, locked) ?? original) : original;
+  const swaps: Swap[] = chosen.map((c) => ({ ...c, slot: i.slots[newStarters.indexOf(c.in)] ?? "" }));
+  return {
+    windowStart: i.window.start,
+    newStarters,
+    swaps,
+    unresolved,
+    formationBefore: formationOf(original.filter((s) => s && s !== "0"), pos),
+    formationAfter: formationOf(newStarters.filter((s) => s && s !== "0"), pos),
+  };
 }
 
 // ---------- League context ----------
