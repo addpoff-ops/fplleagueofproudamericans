@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getLeagueData } from "@/lib/league";
 import { consensusValues, type ConsensusValue } from "@/lib/rankings";
 import { getPlayers } from "@/lib/sleeper";
@@ -76,18 +75,7 @@ export default async function PowerRankingsPage() {
 
   return (
     <>
-      <PageTitle
-        title="Power Rankings"
-        sub={
-          <>
-            Teams ranked by total roster value. Each player&apos;s value is the average of their value across all{" "}
-            <Link href="/rankings" className="underline">
-              {listCount} rankings {listCount === 1 ? "list" : "lists"}
-            </Link>{" "}
-            on the site, using the original spreadsheet values (e.g. FWD S = 580, MID S = 600)            . Click a team to see its players.
-          </>
-        }
-      />
+      <PageTitle title="Power Rankings" />
 
       {listCount === 0 ? (
         <div className="card p-8 text-center text-sm text-zinc-500">No rankings lists yet.</div>
