@@ -42,7 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <img src="/logo.webp" alt="" width={48} height={48} className="h-10 w-10 rounded-full object-cover ring-2 ring-zinc-200 sm:h-12 sm:w-12 dark:ring-zinc-700" />
               Proud Americans FPL
             </Link>
-            <nav className="flex flex-wrap gap-1 text-lg sm:gap-2 sm:text-[28px]">
+            <nav className="flex flex-wrap gap-1 font-['Times_New_Roman',Times,serif] text-lg font-bold sm:gap-2 sm:text-[28px]">
               {NAV.map((n) => (
                 <Link
                   key={n.href}
