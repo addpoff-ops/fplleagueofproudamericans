@@ -4,7 +4,7 @@ import { SPORT } from "./sleeper";
 // behind projected points in the Sleeper app). Each stat is an expected count
 // for the week; `cs` is the chance of a clean sheet (0-1).
 
-export const PROJ_STATS = ["g", "at", "kp", "sot", "tkw", "int", "aer", "cs", "sv"] as const;
+export const PROJ_STATS = ["g", "at", "kp", "sot", "cos", "acnc", "tkw", "int", "aer", "clr", "cs", "sv"] as const;
 export type ProjStat = (typeof PROJ_STATS)[number];
 
 export const PROJ_LABEL: Record<ProjStat, string> = {
@@ -12,9 +12,12 @@ export const PROJ_LABEL: Record<ProjStat, string> = {
   at: "Assists",
   kp: "Chances created",
   sot: "Shots on target",
+  cos: "Dribbles completed",
+  acnc: "Accurate crosses",
   tkw: "Tackles won",
   int: "Interceptions",
   aer: "Aerials won",
+  clr: "Effective clearances",
   cs: "Clean sheet %",
   sv: "Saves",
 };
@@ -46,11 +49,17 @@ export interface Projection {
 
 /**
  * Projected points from goals, assists, chances created, shots on target,
- * tackles won, interceptions, aerials won, clean-sheet likelihood and (for
- * goalkeepers only) saves, each multiplied by our league's score for that stat
- * at the player's position (e.g. pos_d_cs, pos_gk_g).
+ * dribbles completed, accurate crosses, tackles won, interceptions, aerials
+ * won, effective clearances, clean-sheet likelihood and (for goalkeepers only)
+ * saves, each multiplied by our league's score for that stat at the player's
+ * position (e.g. pos_d_cs, pos_gk_clr).
  */
-export function projectPoints(line: StatLine | undefined, pos: string, scoring: Record<string, number>): Projection {
+export function projectPoints(
+  line: StatLine | undefined,
+  pos: string,
+  scoring: Record<string, number>,
+  multiplier = 1, // scales every projected stat (see PROJECTION_ADJUSTMENTS)
+): Projection {
   const p = POS_KEY[pos];
   const stats: Projection["stats"] = {};
   const lines: ProjectionLine[] = [];
@@ -58,7 +67,7 @@ export function projectPoints(line: StatLine | undefined, pos: string, scoring: 
   if (!p) return { points: 0, stats, lines };
   for (const s of PROJ_STATS) {
     if (s === "sv" && pos !== "GK") continue; // saves count for goalkeepers only
-    const value = (line && (line[`pos_${p}_${s}`] ?? line[s])) || 0;
+    const value = ((line && (line[`pos_${p}_${s}`] ?? line[s])) || 0) * multiplier;
     const perUnit = scoring[`pos_${p}_${s}`] ?? 0;
     if (value) stats[s] = value;
     lines.push({ stat: s, value, perUnit, points: value * perUnit });
@@ -67,3 +76,12 @@ export function projectPoints(line: StatLine | undefined, pos: string, scoring: 
   // Full precision; pages round once when displaying.
   return { points, stats, lines };
 }
+
+/**
+ * Manual adjustments to Sleeper's projections, by Sleeper player ID: every
+ * projected stat is multiplied by this. Kostoulas (10130) is halved as a test,
+ * since his projections have run well above his actual output this season.
+ */
+export const PROJECTION_ADJUSTMENTS: Record<string, number> = {
+  "10130": 0.5, // Charalampos Kostoulas
+};

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getLeagueData, type Team } from "@/lib/league";
 import { getPlayers, getState, type Player } from "@/lib/sleeper";
 import { getSchedule } from "@/lib/schedule";
-import { getWeekProjectionStats, projectPoints, PROJ_LABEL, PROJ_STATS, type Projection } from "@/lib/projections";
+import { getWeekProjectionStats, projectPoints, PROJ_LABEL, PROJ_STATS, PROJECTION_ADJUSTMENTS, type Projection } from "@/lib/projections";
 import { POSITION_LABEL, type Pos } from "@/lib/value";
 import { Avatar, PageTitle } from "@/components/ui";
 
@@ -111,6 +111,11 @@ function PlayerRow({ r }: { r: Row }) {
           </span>
         </summary>
         <div className="bg-zinc-50/60 px-2.5 pb-2 pt-1 dark:bg-zinc-950/60">
+          {PROJECTION_ADJUSTMENTS[r.id] !== undefined && (
+            <p className="py-1 text-[11px] text-amber-600 dark:text-amber-400">
+              Test adjustment: RotoWire&apos;s projected stats × {PROJECTION_ADJUSTMENTS[r.id]}.
+            </p>
+          )}
           {r.pr.lines.length === 0 ? (
             <p className="py-1 text-xs text-zinc-500">No projection for this player.</p>
           ) : (
@@ -153,7 +158,8 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
   const week = Number.isInteger(requested) && requested >= 1 && requested <= 38 ? requested : state.week;
   const [schedule, projStats] = await Promise.all([getSchedule(week, week), getWeekProjectionStats(league.season, week)]);
 
-  const proj = (id: string, pos: Pos) => projectPoints(projStats[id], pos, league.scoring_settings);
+  const proj = (id: string, pos: Pos) =>
+    projectPoints(projStats[id], pos, league.scoring_settings, PROJECTION_ADJUSTMENTS[id] ?? 1);
   const byId = new Map(teams.map((t) => [t.rosterId, t]));
   const games = (schedule ?? [])
     .map((g) => ({ home: byId.get(g.home), away: byId.get(g.away) }))
@@ -192,7 +198,7 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
         <>
           {!hasProjections && (
             <div className="card mb-3 p-4 text-sm text-zinc-500">
-              Sleeper hasn&apos;t published projections for gameweek {week} yet, so every player shows 0.
+              RotoWire projections aren&apos;t available yet for gameweek {week}, so every player shows 0.
             </div>
           )}
           <div className="relative left-1/2 grid w-[min(1372px,calc(100vw-2rem))] -translate-x-1/2 gap-2">
@@ -275,9 +281,9 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
             })}
           </div>
           <p className="mt-3 text-xs text-zinc-500">
-            Projected points use Sleeper&apos;s weekly projections for goals, assists, chances created, shots on target,
-            tackles won, interceptions, aerials won, clean-sheet likelihood and (goalkeepers only) saves, scored with our
-            league&apos;s settings. Each team&apos;s total is its best XI by projection, following formation rules: 1
+            Projected points use RotoWire&apos;s weekly projections for goals, assists, chances created, shots on target,
+            dribbles completed, accurate crosses, tackles won, interceptions, aerials won, effective clearances,
+            clean-sheet likelihood and (goalkeepers only) saves, scored with our league&apos;s settings. Each team&apos;s total is its best XI by projection, following formation rules: 1
             goalkeeper, 3–5 defenders, 3–5 midfielders and 1–3 forwards (injured reserve excluded). Click a player&apos;s
             score to see each projected stat and the points it earns.
           </p>
