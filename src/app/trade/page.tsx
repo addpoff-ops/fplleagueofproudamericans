@@ -11,7 +11,7 @@ export default async function TradePage({ searchParams }: { searchParams: Promis
   const { rankings } = await searchParams;
   const [{ teams }, pool, sets, past] = await Promise.all([getLeagueData(), playerPool(), listRankingSets(), getPastTrades()]);
   const initialSlug =
-    rankings === AVERAGE_SLUG || rankings === POINTS_SLUG ? rankings : (sets.find((s) => s.slug === rankings) ?? sets[0])?.slug;
+    rankings === POINTS_SLUG ? rankings : (sets.find((s) => s.slug === rankings)?.slug ?? AVERAGE_SLUG); // default: average of all lists
 
   return (
     <>
