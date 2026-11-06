@@ -80,3 +80,11 @@ model SchedulerHeartbeat {
   lastRunAt  DateTime
   lastResult String
 }
+
+/// Small key/value cache (e.g. the league's future schedule, which needs a
+/// signed-in Sleeper call to read and rarely changes).
+model CachedData {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

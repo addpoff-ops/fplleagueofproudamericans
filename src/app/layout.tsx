@@ -14,6 +14,7 @@ const NAV = [
   { href: "/power-rankings", label: "Power Rankings" },
   { href: "/rankings", label: "Player Rankings" },
   { href: "/trade", label: "Trade Calculator" },
+  { href: "/season-simulator", label: "Season Simulator" },
   { href: "/lineup-setter", label: "Lineup Setter" },
   { href: "/draft", label: "Draft" },
 ];

@@ -45,6 +45,7 @@ export interface MatchupLeg {
   roster_id: number;
   leg: number;
   round: number;
+  matchup_id?: number | null;
   starters: string[] | null;
   players: string[] | null;
 }
@@ -54,7 +55,7 @@ export async function getMatchupLegs(token: string, leagueId: string, round: num
     token,
     "matchup_legs",
     `query matchup_legs($leagueId: String!, $round: Int!) {
-      matchup_legs(league_id: $leagueId, round: $round) { roster_id leg round starters players }
+      matchup_legs(league_id: $leagueId, round: $round) { roster_id leg round matchup_id starters players }
     }`,
     { leagueId, round },
   );

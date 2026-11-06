@@ -190,3 +190,9 @@ export async function pointsEntries(): Promise<RankedEntry[]> {
     .map(([playerId, v]) => ({ playerId, pos: v.pos, rank: v.rank!, tier: v.tier, value: toTradeValue(v.pts) }))
     .sort((a, b) => POSITIONS.indexOf(a.pos) - POSITIONS.indexOf(b.pos) || a.rank - b.rank);
 }
+
+/** Each team's Power Rankings total (Site rankings view): the sum of its players' consensus values. */
+export async function teamPowerTotals(teams: { rosterId: number; players: string[] }[]) {
+  const { values } = await consensusValues();
+  return new Map(teams.map((t) => [t.rosterId, t.players.reduce((s, id) => s + (values.get(id)?.pts ?? 0), 0)]));
+}
