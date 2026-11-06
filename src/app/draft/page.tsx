@@ -1,6 +1,7 @@
 import { getLeagueData, POSITION_STYLES } from "@/lib/league";
 import { getDraftPicks } from "@/lib/sleeper";
 import { PageTitle } from "@/components/ui";
+import FitText from "@/components/FitText";
 
 export const dynamic = "force-dynamic"; // Sleeper responses are still cached (see lib/sleeper.ts)
 export const metadata = { title: "Draft" };
@@ -39,9 +40,12 @@ export default async function DraftPage() {
                   <div className="truncate text-[7.2px] opacity-70">
                     {p.round}.{String(p.pick_no - (p.round - 1) * n).padStart(2, "0")} · {pos} · {p.metadata.team_abbr}
                   </div>
-                  <div className="truncate font-semibold">
-                    {p.metadata.first_name} {p.metadata.last_name}
-                  </div>
+                  {/* Sleeper's font (Muli/Mulish), sized so the whole name fills the box */}
+                  <FitText
+                    text={`${p.metadata.first_name} ${p.metadata.last_name}`.trim()}
+                    max={16}
+                    className="font-['Mulish','Muli',sans-serif] font-extrabold"
+                  />
                 </div>
               );
             }),

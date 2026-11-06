@@ -33,6 +33,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const unread = await unreadLineupNotices();
   return (
     <html lang="en">
+      <head>
+        {/* Mulish (formerly Muli), the font Sleeper uses; for draft board names */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* In the App Router's root layout this loads on every page, so the pages-router warning doesn't apply. */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:wght@700;800;900&display=swap" />
+      </head>
       <body className="antialiased">
         <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
           {/* Everything here is 2x the original header size on tablet/desktop. */}
