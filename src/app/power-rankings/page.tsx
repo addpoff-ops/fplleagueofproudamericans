@@ -129,7 +129,7 @@ export default async function PowerRankingsPage({ searchParams }: { searchParams
                 <details
                   key={t.rosterId}
                   open={i === 0}
-                  className="group rounded-xl border border-zinc-200 bg-white transition-colors hover:border-zinc-300 dark:border-zinc-800/80 dark:bg-zinc-900/70 dark:hover:border-zinc-700"
+                  className="group rounded-xl border border-zinc-200 bg-white transition-colors hover:border-zinc-300 dark:border-zinc-800/80 dark:bg-zinc-900/95 dark:hover:border-zinc-700"
                 >
                   <summary className="cursor-pointer list-none px-3 pb-3 pt-3 sm:px-4 [&::-webkit-details-marker]:hidden">
                     <div className="flex items-start gap-3">
