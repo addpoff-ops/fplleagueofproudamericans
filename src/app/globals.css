@@ -7,13 +7,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0d2414;
+    --background: #0e1a24;
     --foreground: #eef6ee;
-    /* Background art by fifthlinedesigns (used with permission; credited in
-       the footer), slightly darkened with soft edges so text stays readable. */
-    --background-image: linear-gradient(rgba(3, 14, 6, 0.28), rgba(3, 14, 6, 0.28)),
-      radial-gradient(130% 100% at 50% 45%, transparent 50%, rgba(2, 10, 4, 0.6) 100%),
-      url("/background-fifthline.webp");
+    /* Background photo: a pitch beside a fjord, darkened with soft edges so
+       text stays readable over the bright sky and turf. */
+    --background-image: linear-gradient(rgba(4, 10, 16, 0.4), rgba(4, 10, 16, 0.4)),
+      radial-gradient(130% 100% at 50% 45%, transparent 50%, rgba(2, 6, 10, 0.6) 100%),
+      url("/background.webp");
     --background-size: auto, auto, cover;
     /* Dark surfaces (cards, rows, borders, header, inputs) tinted deep green */
     --color-zinc-950: #062312;
