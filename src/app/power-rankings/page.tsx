@@ -260,21 +260,14 @@ export default async function PowerRankingsPage({ searchParams }: { searchParams
               );
             })}
           </div>
-          <p className="mt-3 text-xs text-zinc-500">
-            {basis === "points" ? (
-              <>
-                Total Points: players are ordered by this season&apos;s fantasy points (our league&apos;s scoring), and each
-                gets the tier of the official list&apos;s player at the same rank, valued with the original spreadsheet
-                values. The coloured cell is that tier (green = top tiers, red = bottom). Players with no points this
-                season count 0.
-              </>
-            ) : (
-              <>
-                In each team&apos;s player list: the number is the player&apos;s average value across all lists; the
-                coloured cell is their consensus tier, the tier closest to that average (green = top tiers, red = bottom).
-              </>
-            )}
-          </p>
+          {basis === "points" && (
+            <p className="mt-3 text-xs text-zinc-500">
+              Total Points: players are ordered by this season&apos;s fantasy points (our league&apos;s scoring), and each
+              gets the tier of the official list&apos;s player at the same rank, valued with the original spreadsheet
+              values. The coloured cell is that tier (green = top tiers, red = bottom). Players with no points this season
+              count 0.
+            </p>
+          )}
         </>
       )}
     </>
