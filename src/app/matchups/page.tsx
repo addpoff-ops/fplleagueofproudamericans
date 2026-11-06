@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getLeagueData, type Team } from "@/lib/league";
-import { getPlayers, getSeasonStats, getState, type Player } from "@/lib/sleeper";
+import { getPlayers, getSeasonStats, getState, getWeekStats, type Player } from "@/lib/sleeper";
 import { getSchedule } from "@/lib/schedule";
 import { fillMissingKeepers, getWeekProjectionStats, projectPoints, PROJ_LABEL, PROJ_STATS, PROJECTION_ADJUSTMENTS, type Projection } from "@/lib/projections";
 import { POSITION_LABEL, type Pos } from "@/lib/value";
@@ -130,7 +130,7 @@ function PlayerRow({ r }: { r: Row }) {
               <thead>
                 <tr className="text-[10px] uppercase tracking-wide text-zinc-500">
                   <th className="py-1 text-left font-semibold">Stat</th>
-                  <th className="py-1 text-right font-semibold">Projected</th>
+                  <th className="py-1 text-right font-semibold"><span className="sm:hidden">Proj</span><span className="hidden sm:inline">Projected</span></th>
                   <th className="py-1 text-right font-semibold">Pts each</th>
                   <th className="py-1 text-right font-semibold">Points</th>
                 </tr>
@@ -159,10 +159,58 @@ function PlayerRow({ r }: { r: Row }) {
   );
 }
 
+interface FormRow {
+  id: string;
+  player: Player;
+  pos: Pos;
+  owner: string;
+  projected: number;
+  recent: number;
+  multiplier: number;
+}
+
+/**
+ * Players projected furthest above their recent form: this week's projection
+ * divided by their average points over their last four games of 60+ minutes
+ * (scored on the same stats as the projection). Players without four such games
+ * are left out.
+ */
+async function formRows(
+  season: string,
+  week: number,
+  projStats: Record<string, Record<string, number>>,
+  players: Record<string, Player>,
+  teams: Team[],
+  scoring: Record<string, number>,
+): Promise<FormRow[]> {
+  const weeks = Array.from({ length: week - 1 }, (_, i) => week - 1 - i); // most recent first
+  const stats = await Promise.all(weeks.map((w) => getWeekStats(season, w).catch(() => ({}) as Record<string, Record<string, number>>)));
+  const owner = new Map<string, string>();
+  for (const t of teams) for (const id of t.players) owner.set(id, t.teamName);
+  const rows: FormRow[] = [];
+  for (const id of Object.keys(projStats)) {
+    const player = players[id];
+    const pos = player?.pos as Pos | undefined;
+    if (!player || !pos || !COLS.includes(pos)) continue;
+    const games = stats.map((s) => s[id]).filter((l) => l && (l.min ?? 0) >= 60).slice(0, 4);
+    if (games.length < 4) continue;
+    const recent = games.reduce((sum, l) => sum + projectPoints(l, pos, scoring).points, 0) / 4;
+    if (recent <= 0) continue;
+    const projected = projectPoints(projStats[id], pos, scoring, PROJECTION_ADJUSTMENTS[id] ?? 1).points;
+    if (projected <= 0) continue;
+    rows.push({ id, player, pos, owner: owner.get(id) ?? "Free agent", projected, recent, multiplier: projected / recent });
+  }
+  return rows.sort((a, b) => b.multiplier - a.multiplier).slice(0, 20);
+}
+
 export default async function MatchupsPage({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
   const [{ league, teams }, state, players] = await Promise.all([getLeagueData(), getState(), getPlayers()]);
   const requested = Number((await searchParams).week);
-  const week = Number.isInteger(requested) && requested >= 1 && requested <= 38 ? requested : state.week;
+  // The current matchup week is the one after the last week Sleeper has scored, so the page
+  // moves on as soon as Sleeper finalizes a gameweek's results and updates team records.
+  const scored = league.settings.last_scored_leg ?? 0;
+  const currentWeek = scored > 0 ? Math.min(scored + 1, 38) : state.week;
+  const week = Number.isInteger(requested) && requested >= 1 && requested <= 38 ? requested : currentWeek;
   const [schedule, rawProj, seasonStats] = await Promise.all([
     getSchedule(week, week),
     getWeekProjectionStats(league.season, week),
@@ -179,6 +227,7 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
     .filter((g): g is { home: Team; away: Team } => !!g.home && !!g.away)
     .map((g) => ({ home: teamSide(g.home, players, proj, estimateNotes), away: teamSide(g.away, players, proj, estimateNotes) }));
   const hasProjections = Object.keys(rawProj).length > 0;
+  const form = hasProjections ? await formRows(league.season, week, projStats, players, teams, league.scoring_settings) : [];
 
   return (
     <>
@@ -191,7 +240,7 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
         )}
         <span className="rounded-2xl border border-zinc-200 bg-white/80 px-4 py-1.5 text-sm font-semibold backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/85">
           Gameweek {week}
-          {week === state.week ? " (current)" : ""}
+          {week === currentWeek ? " (current)" : ""}
         </span>
         {week < 38 && (
           <Link href={`/matchups?week=${week + 1}`} className="btn-ghost">
@@ -294,6 +343,48 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
               );
             })}
           </div>
+          {form.length > 0 && (
+            <section className="relative left-1/2 mt-6 w-[min(1372px,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4 dark:border-zinc-800/80 dark:bg-zinc-900/95">
+              <h2 className="text-lg font-bold">Projected Highest Against Recent Form</h2>
+              <p className="mb-3 text-xs text-zinc-500">
+                This week&apos;s projection divided by each player&apos;s average over their last four games with at least 60
+                minutes played.
+              </p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm tabular-nums">
+                  <thead>
+                    <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
+                      <th className="py-1.5 pr-2 text-left font-semibold">#</th>
+                      <th className="py-1.5 pr-2 text-left font-semibold">Player</th>
+                      <th className="py-1.5 pr-2 text-left font-semibold">Pos</th>
+                      <th className="hidden py-1.5 pr-2 text-left font-semibold sm:table-cell">Fantasy team</th>
+                      <th className="py-1.5 pr-2 text-right font-semibold">Projected</th>
+                      <th className="py-1.5 pr-2 text-right font-semibold"><span className="sm:hidden">Avg</span><span className="hidden sm:inline">4-game avg</span></th>
+                      <th className="py-1.5 text-right font-semibold"><span className="sm:hidden">Mult</span><span className="hidden sm:inline">Multiplier</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {form.map((f, i) => (
+                      <tr key={f.id} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800/80">
+                        <td className="py-1.5 pr-2 text-zinc-500">{i + 1}</td>
+                        <td className="py-1.5 pr-2">
+                          <span className="font-medium">{f.player.name}</span>{" "}
+                          <span className="text-[11px] text-zinc-500">{f.player.team ?? ""}</span>
+                        </td>
+                        <td className="py-1.5 pr-2">
+                          <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold ring-1 ${PILL[f.pos]}`}>{POSITION_LABEL[f.pos]}</span>
+                        </td>
+                        <td className="hidden py-1.5 pr-2 text-zinc-500 sm:table-cell">{f.owner}</td>
+                        <td className="py-1.5 pr-2 text-right">{fmt(f.projected)}</td>
+                        <td className="py-1.5 pr-2 text-right">{fmt(f.recent)}</td>
+                        <td className="py-1.5 text-right font-bold">{f.multiplier.toFixed(2)}×</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
           <p className="mt-3 text-xs text-zinc-500">
             Projected points use RotoWire&apos;s weekly projections for goals, assists, chances created, shots on target,
             dribbles completed, accurate crosses, tackles won, interceptions, aerials won, effective clearances,

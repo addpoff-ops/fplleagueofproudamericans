@@ -141,6 +141,10 @@ type StatLine = Record<string, number>;
 export const getSeasonStats = async (season: string) =>
   (await get<Record<string, StatLine> | null>(`/stats/${SPORT}/regular/${season}`, 3600)) ?? {};
 
+/** One gameweek's actual stats per player (includes `min`, minutes played). */
+export const getWeekStats = async (season: string, week: number) =>
+  (await get<Record<string, StatLine> | null>(`/stats/${SPORT}/regular/${season}/${week}`, 3600)) ?? {};
+
 /** Pre-season projections; `adp_std` is the ADP shown in the Sleeper app. */
 export const getProjections = async (season: string) =>
   (await get<Record<string, StatLine> | null>(`/projections/${SPORT}/regular/${season}`, 3600)) ?? {};
