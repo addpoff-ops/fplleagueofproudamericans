@@ -46,7 +46,7 @@ export default function LineupSetterClient({ setter, runs, priorities, scheduler
           <h2 className="mb-2 font-semibold">How it works</h2>
           <ol className="list-decimal space-y-1.5 pl-4 text-zinc-600 dark:text-zinc-400">
             <li>Every few minutes, the site checks whether Premier League team sheets are out for the next kickoff window.</li>
-            <li>Any of your starters in that window who isn&apos;t in their club&apos;s starting XI gets benched.</li>
+            <li>Any of your starters in that window who aren&apos;t in their club&apos;s starting XI gets benched.</li>
             <li>
               Their replacement is the best eligible bench player, in this order:
               <ul className="mt-1 list-none space-y-0.5">
