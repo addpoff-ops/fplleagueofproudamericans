@@ -70,7 +70,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </header>
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
         <footer className="mx-auto max-w-6xl px-4 pb-8 text-xs text-zinc-500">
-          League data from the Sleeper API.
+          League data from the Sleeper API. Background art by{" "}
+          <a href="https://www.instagram.com/fifthlinedesigns/" target="_blank" rel="noopener noreferrer" className="underline">
+            fifthlinedesigns
+          </a>
+          .
         </footer>
       </body>
     </html>
