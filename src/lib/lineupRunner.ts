@@ -1,7 +1,7 @@
 import type { LineupSetter } from "@prisma/client";
 import { prisma } from "./db";
 import { decrypt } from "./secure";
-import { getMatchupLegs, SleeperAuthError, updateMatchupLeg } from "./sleeperAuth";
+import { getMatchupLegs, SleeperAuthError, updateMatchupLeg, updateRosterMetadata } from "./sleeperAuth";
 import { lineupSlots, loadContext, loadPlannerData, planWindow, PRIORITY_LABEL, type Plan } from "./lineup";
 
 type Ctx = Awaited<ReturnType<typeof loadContext>>;
@@ -16,12 +16,38 @@ export interface WindowResult {
 
 const name = (data: Data, id: string) => data.players[id]?.name ?? `Player ${id}`;
 
+/** A roster's current metadata, read fresh (the per-week formation lives in metadata.formation). */
+async function rosterMetadata(leagueId: string, rosterId: number): Promise<Record<string, string>> {
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Couldn't read your Sleeper roster (${res.status}).`);
+  const rosters = (await res.json()) as { roster_id: number; metadata?: Record<string, string> | null }[];
+  return rosters.find((r) => r.roster_id === rosterId)?.metadata ?? {};
+}
+
+function formationsOf(meta: Record<string, string>): Record<string, string> {
+  try {
+    return JSON.parse(meta.formation ?? "{}") ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/** Set this week's formation on the roster, keeping all other metadata as is. */
+async function saveFormation(token: string, leagueId: string, rosterId: number, week: number, formation: string) {
+  const meta = await rosterMetadata(leagueId, rosterId);
+  const formations = { ...formationsOf(meta), [String(week)]: formation };
+  const saved = await updateRosterMetadata(token, leagueId, rosterId, { ...meta, formation: JSON.stringify(formations) });
+  if (formationsOf(saved?.metadata ?? {})[String(week)] !== formation) throw new Error("Sleeper didn't confirm the new formation.");
+}
+
 function describe(plan: Plan, data: Data) {
   const parts = plan.swaps.map(
     (s) => `Benched ${name(data, s.out)} (not in the starting XI), started ${name(data, s.in)} (${PRIORITY_LABEL[s.priority]})`,
   );
   if (plan.swaps.length && plan.formationAfter !== plan.formationBefore)
     parts.push(`Formation changed from ${plan.formationBefore} to ${plan.formationAfter}`);
+  if (plan.repaired)
+    parts.push(`Your lineup didn't match its formation, so players were put back in their positions (${plan.formationAfter})`);
   for (const u of plan.unresolved) parts.push(`${name(data, u.out)} isn't starting, but no eligible replacement was available`);
   return parts.join(". ") + ".";
 }
@@ -46,6 +72,7 @@ export async function runForSetter(
     const leg = legs.find((l) => l.roster_id === setter.rosterId);
     if (!leg?.starters) throw new Error(`Couldn't find your GW${ctx.week} lineup on Sleeper.`);
     let starters = leg.starters;
+    let formation: string | undefined = formationsOf(await rosterMetadata(leagueId, setter.rosterId))[String(ctx.week)];
     const roster = data.rosters.find((r) => r.roster_id === setter.rosterId);
 
     for (const window of ctx.windows) {
@@ -58,26 +85,39 @@ export async function runForSetter(
         window,
         proj: data.proj,
         playerInfo: data.players,
+        formation,
       });
+      const save = plan.swaps.length > 0 || plan.repaired;
 
-      if (plan.swaps.length === 0 && plan.unresolved.length === 0) {
+      if (!save && plan.unresolved.length === 0) {
         results.push({ windowStart: window.start, status: "no_change", message: "Everyone in this kickoff window is starting. No changes needed.", plan });
         continue;
       }
       if (opts.dryRun) {
         results.push({ windowStart: window.start, status: "preview", message: describe(plan, data), plan });
         starters = plan.newStarters;
+        formation = plan.formationAfter;
         continue;
       }
-      if (plan.swaps.length > 0) {
-        const saved = await updateMatchupLeg(token, leagueId, setter.rosterId, ctx.week, plan.newStarters);
-        const ok = saved?.starters && plan.newStarters.every((s, i) => saved.starters![i] === s);
-        if (!ok) throw new Error("Sleeper didn't confirm the new lineup.");
+      if (save) {
+        // Sleeper checks the lineup against the week's formation, so set the
+        // formation first; if the lineup then fails to save, put it back.
+        const changeFormation = plan.formationAfter !== formation;
+        if (changeFormation) await saveFormation(token, leagueId, setter.rosterId, ctx.week, plan.formationAfter);
+        try {
+          const saved = await updateMatchupLeg(token, leagueId, setter.rosterId, ctx.week, plan.newStarters);
+          const ok = saved?.starters && plan.newStarters.every((s, i) => saved.starters![i] === s);
+          if (!ok) throw new Error("Sleeper didn't confirm the new lineup.");
+        } catch (e) {
+          if (changeFormation && formation) await saveFormation(token, leagueId, setter.rosterId, ctx.week, formation).catch(() => {});
+          throw e;
+        }
         starters = plan.newStarters;
+        formation = plan.formationAfter;
       }
       results.push({
         windowStart: window.start,
-        status: plan.swaps.length ? "changed" : "unresolved",
+        status: save ? "changed" : "unresolved",
         message: describe(plan, data),
         plan,
       });

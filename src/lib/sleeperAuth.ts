@@ -77,3 +77,23 @@ export async function updateMatchupLeg(token: string, leagueId: string, rosterId
   );
   return d.update_matchup_leg;
 }
+
+/**
+ * Save a roster's metadata (Sleeper's app sends the whole object back). The
+ * per-week formation lives here as metadata.formation, a JSON string like
+ * {"9":"4-4-2","10":"5-4-1"} (DEF-MID-FWD), and Sleeper checks lineups against it.
+ */
+export async function updateRosterMetadata(token: string, leagueId: string, rosterId: number, metadata: Record<string, string>) {
+  const keys = Object.keys(metadata);
+  const d = await gql<{ roster_update_metadata: { roster_id: number; metadata: Record<string, string> | null } | null }>(
+    token,
+    "roster_update_metadata",
+    `mutation roster_update_metadata($k_metadata: [String], $v_metadata: [String]) {
+      roster_update_metadata(league_id: ${JSON.stringify(leagueId)}, roster_id: ${rosterId}, k_metadata: $k_metadata, v_metadata: $v_metadata) {
+        roster_id metadata
+      }
+    }`,
+    { k_metadata: keys, v_metadata: keys.map((k) => metadata[k]) },
+  );
+  return d.roster_update_metadata;
+}
