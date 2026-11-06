@@ -10,6 +10,7 @@ A league hub for the **FPL League of Proud Americans**
 | `/` | Opens Power Rankings |
 | `/power-rankings` | All 12 teams ranked by total roster value: each player's value is averaged across every rankings list on the site (original spreadsheet values), with a FWD/MID/DEF/GK breakdown |
 | `/teams/[id]` | Each roster (starters, bench, IR), with ranks and values from the official rankings |
+| `/matchups` | This gameweek's head-to-head games: each player's projected points (Sleeper's weekly projections for goals, assists, chances created, shots on target, tackles won, interceptions, aerials, clean-sheet chance and GK saves, scored with league settings) and each team's best-XI total (1 GK, 3–5 DEF, 3–5 MID, 1–3 FWD) |
 | `/season-simulator` | Simulates weeks 11–38: each game's win chance is a team's Power Rankings total over both teams' totals; one simulated season or 1,000 seasons (average finish, top-4, 1st-place and relegation chances) |
 | `/lineup-setter` | Connect a Sleeper account and switch on automatic lineup changes when team sheets drop |
 | `/draft` | The full draft board |
