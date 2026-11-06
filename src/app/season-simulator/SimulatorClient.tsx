@@ -50,15 +50,16 @@ interface ManyResult {
   avgWins: number;
   avgLosses: number;
   avgFinish: number;
-  playoffPct: number;
+  topPct: number; // chance of finishing in the top TOP_N
+  relPct: number; // chance of finishing in the bottom RELEGATION (10th-12th)
   firstPct: number;
   best: number;
   worst: number;
 }
 
 /** Run `n` full seasons and summarise where each team finishes. */
-function simulateMany(n: number, games: ScheduledGame[], power: Map<number, number>, teams: Team[], playoffTeams: number) {
-  const acc = new Map(teams.map((t) => [t.rosterId, { wins: 0, losses: 0, finish: 0, playoffs: 0, first: 0, best: 99, worst: 0 }]));
+function simulateMany(n: number, games: ScheduledGame[], power: Map<number, number>, teams: Team[], topN: number) {
+  const acc = new Map(teams.map((t) => [t.rosterId, { wins: 0, losses: 0, finish: 0, top: 0, rel: 0, first: 0, best: 99, worst: 0 }]));
   const chances = games.map((g) => winChance(power.get(g.home) ?? 0, power.get(g.away) ?? 0));
   for (let k = 0; k < n; k++) {
     const simWins = new Map<number, number>(teams.map((t) => [t.rosterId, 0]));
@@ -82,7 +83,8 @@ function simulateMany(n: number, games: ScheduledGame[], power: Map<number, numb
       a.wins += r.w;
       a.losses += r.l;
       a.finish += i + 1;
-      if (i < playoffTeams) a.playoffs++;
+      if (i < topN) a.top++;
+      if (i >= order.length - RELEGATION) a.rel++;
       if (i === 0) a.first++;
       a.best = Math.min(a.best, i + 1);
       a.worst = Math.max(a.worst, i + 1);
@@ -96,7 +98,8 @@ function simulateMany(n: number, games: ScheduledGame[], power: Map<number, numb
         avgWins: a.wins / n,
         avgLosses: a.losses / n,
         avgFinish: a.finish / n,
-        playoffPct: (a.playoffs / n) * 100,
+        topPct: (a.top / n) * 100,
+        relPct: (a.rel / n) * 100,
         firstPct: (a.first / n) * 100,
         best: a.best,
         worst: a.worst,
@@ -106,6 +109,10 @@ function simulateMany(n: number, games: ScheduledGame[], power: Map<number, numb
 }
 
 const SEASONS = 1000;
+/** The 1,000-season table reports each team's chance of a top-4 finish. */
+const TOP_N = 4;
+/** ...and its chance of finishing in the bottom 3 (10th, 11th or 12th). */
+const RELEGATION = 3;
 
 export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, games, teams }: Props) {
   const power = useMemo(() => new Map(teams.map((t) => [t.rosterId, t.power])), [teams]);
@@ -153,7 +160,7 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
             setManyBusy(true);
             // Let the button show "Simulating…" before the work starts.
             setTimeout(() => {
-              setMany(simulateMany(SEASONS, games, power, teams, playoffTeams));
+              setMany(simulateMany(SEASONS, games, power, teams, TOP_N));
               setManyBusy(false);
             }, 20);
           }}
@@ -182,8 +189,9 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
                   <th className="th">Team</th>
                   <th className="th text-center">Avg final record</th>
                   <th className="th text-center">Avg finish</th>
-                  <th className="th text-right">Playoffs (top {playoffTeams})</th>
+                  <th className="th text-right">Top {TOP_N}</th>
                   <th className="th text-right">Finish 1st</th>
+                  <th className="th text-right">Relegation odds</th>
                   <th className="th hidden text-center sm:table-cell">Best / worst</th>
                 </tr>
               </thead>
@@ -199,12 +207,13 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
                     <td className="td text-right">
                       <span className="inline-flex items-center gap-2">
                         <span className="hidden h-2 w-20 overflow-hidden rounded-full bg-zinc-200 sm:inline-block dark:bg-zinc-800">
-                          <span className="block h-full bg-emerald-500" style={{ width: `${m.playoffPct}%` }} />
+                          <span className="block h-full bg-emerald-500" style={{ width: `${m.topPct}%` }} />
                         </span>
-                        <span className="w-12 font-semibold tabular-nums">{m.playoffPct.toFixed(1)}%</span>
+                        <span className="w-12 font-semibold tabular-nums">{m.topPct.toFixed(1)}%</span>
                       </span>
                     </td>
                     <td className="td text-right tabular-nums">{m.firstPct.toFixed(1)}%</td>
+                    <td className={`td text-right font-semibold tabular-nums ${m.relPct >= 25 ? "text-rose-500" : ""}`}>{m.relPct.toFixed(1)}%</td>
                     <td className="td hidden text-center tabular-nums text-zinc-500 sm:table-cell">
                       {m.best} / {m.worst}
                     </td>
@@ -215,7 +224,7 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
           </div>
           <p className="mt-2 text-xs text-zinc-500">
             Each of the {SEASONS.toLocaleString()} seasons simulates every remaining game with the same win chances; the
-            table shows each team&apos;s averages and how often it made the playoffs or finished first.
+            table shows each team&apos;s averages and how often it finished in the top {TOP_N}, first, or in the bottom {RELEGATION} (relegation: 10th–12th).
           </p>
         </section>
       )}
