@@ -284,7 +284,8 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
           <p className="mt-3 text-xs text-zinc-500">
             Projected points use RotoWire&apos;s weekly projections for goals, assists, chances created, shots on target,
             dribbles completed, accurate crosses, tackles won, interceptions, aerials won, effective clearances,
-            clean-sheet likelihood and (goalkeepers only) saves, scored with our league&apos;s settings. Each team&apos;s total is its best XI by projection, following formation rules: 1
+            clean-sheet likelihood, goals against (defenders and goalkeepers only) and saves (goalkeepers only), scored
+            with our league&apos;s settings. Each team&apos;s total is its best XI by projection, following formation rules: 1
             goalkeeper, 3–5 defenders, 3–5 midfielders and 1–3 forwards (injured reserve excluded). Click a player&apos;s
             score to see each projected stat and the points it earns.
           </p>

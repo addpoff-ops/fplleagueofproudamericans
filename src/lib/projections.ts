@@ -4,7 +4,7 @@ import { SPORT } from "./sleeper";
 // behind projected points in the Sleeper app). Each stat is an expected count
 // for the week; `cs` is the chance of a clean sheet (0-1).
 
-export const PROJ_STATS = ["g", "at", "kp", "sot", "cos", "acnc", "tkw", "int", "aer", "clr", "cs", "sv"] as const;
+export const PROJ_STATS = ["g", "at", "kp", "sot", "cos", "acnc", "tkw", "int", "aer", "clr", "cs", "ga", "sv"] as const;
 export type ProjStat = (typeof PROJ_STATS)[number];
 
 export const PROJ_LABEL: Record<ProjStat, string> = {
@@ -19,6 +19,7 @@ export const PROJ_LABEL: Record<ProjStat, string> = {
   aer: "Aerials won",
   clr: "Effective clearances",
   cs: "Clean sheet %",
+  ga: "Goals against",
   sv: "Saves",
 };
 
@@ -50,9 +51,9 @@ export interface Projection {
 /**
  * Projected points from goals, assists, chances created, shots on target,
  * dribbles completed, accurate crosses, tackles won, interceptions, aerials
- * won, effective clearances, clean-sheet likelihood and (for goalkeepers only)
- * saves, each multiplied by our league's score for that stat at the player's
- * position (e.g. pos_d_cs, pos_gk_clr).
+ * won, effective clearances, clean-sheet likelihood, goals against (defenders
+ * and goalkeepers only) and saves (goalkeepers only), each multiplied by our
+ * league's score for that stat at the player's position (e.g. pos_d_cs, pos_gk_ga).
  */
 export function projectPoints(
   line: StatLine | undefined,
@@ -67,6 +68,7 @@ export function projectPoints(
   if (!p) return { points: 0, stats, lines };
   for (const s of PROJ_STATS) {
     if (s === "sv" && pos !== "GK") continue; // saves count for goalkeepers only
+    if (s === "ga" && pos !== "D" && pos !== "GK") continue; // goals against: defenders and goalkeepers only
     const value = ((line && (line[`pos_${p}_${s}`] ?? line[s])) || 0) * multiplier;
     const perUnit = scoring[`pos_${p}_${s}`] ?? 0;
     if (value) stats[s] = value;
