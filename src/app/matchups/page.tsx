@@ -342,7 +342,7 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
                     </div>
                     <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-950/70">
                       <div className="bg-[#4c1d95]" style={{ width: `${homePct}%` }} />
-                      <div className="bg-[#2f5d2a]" style={{ width: `${100 - homePct}%` }} />
+                      <div className="bg-black" style={{ width: `${100 - homePct}%` }} />
                     </div>
                   </summary>
 
