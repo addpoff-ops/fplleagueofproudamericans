@@ -19,7 +19,6 @@ interface Team {
 interface Props {
   firstWeek: number;
   lastWeek: number;
-  playoffTeams: number;
   games: ScheduledGame[];
   teams: Team[];
 }
@@ -104,7 +103,7 @@ const TOP_N = 4;
 /** ...and its chance of finishing in the bottom 3 (10th, 11th or 12th). */
 const RELEGATION = 3;
 
-export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, games, teams }: Props) {
+export default function SimulatorClient({ firstWeek, lastWeek, games, teams }: Props) {
   const power = useMemo(() => new Map(teams.map((t) => [t.rosterId, t.power])), [teams]);
   const byId = useMemo(() => new Map(teams.map((t) => [t.rosterId, t])), [teams]);
   // Simulate in the browser only (random draws on the server wouldn't match the page's).
@@ -241,8 +240,10 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
               <tr
                 key={r.t.rosterId}
                 className={`border-b border-zinc-100 last:border-0 dark:border-zinc-800/60 ${
-                  i === playoffTeams - 1 ? "border-b-2 border-b-emerald-500/70 dark:border-b-emerald-500/70" : ""
-                }`}
+                  i === TOP_N - 1 ? "border-b-2 border-b-emerald-500/70 dark:border-b-emerald-500/70" : ""
+                } ${
+                  i === table.length - RELEGATION - 1 ? "border-b-2 border-b-rose-500/70 dark:border-b-rose-500/70" : ""
+                } ${i >= table.length - RELEGATION ? "bg-rose-500/10" : ""}`}
               >
                 <td className="td font-semibold text-zinc-500">{i + 1}</td>
                 <td className="td">
@@ -272,7 +273,7 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
       </div>
       )}
       <p className="-mt-3 text-xs text-zinc-500">
-        Green line = playoff cutoff (top {playoffTeams}). Ties in the table are broken by real points scored so far.
+        Green line = top {TOP_N}. Red line and shading = bottom {RELEGATION} (relegation: 10th–12th). Ties in the table are broken by real points scored so far.
         &quot;Final record&quot; = current record plus this simulation&apos;s results.
       </p>
 

@@ -11,7 +11,7 @@ const FIRST_WEEK = 11;
 const LAST_WEEK = 38;
 
 export default async function SeasonSimulatorPage() {
-  const { league, teams } = await getLeagueData();
+  const { teams } = await getLeagueData();
   const [totals, schedule] = await Promise.all([teamPowerTotals(teams), getSchedule(FIRST_WEEK, LAST_WEEK)]);
 
   return (
@@ -26,7 +26,6 @@ export default async function SeasonSimulatorPage() {
         <SimulatorClient
           firstWeek={FIRST_WEEK}
           lastWeek={LAST_WEEK}
-          playoffTeams={league.settings.playoff_teams}
           games={schedule}
           teams={teams.map((t) => ({
             rosterId: t.rosterId,
