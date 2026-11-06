@@ -13,7 +13,7 @@ A league hub for the **FPL League of Proud Americans**
 | `/lineup-setter` | Connect a Sleeper account and switch on automatic lineup changes when team sheets drop |
 | `/draft` | The full draft board |
 | `/rankings` | The official rankings plus anyone else's lists |
-| `/rankings/new` | Create a list, starting from a copy of an existing list, Sleeper's pre-season ADP, this season's total points (league scoring), or blank |
+| `/rankings/new` | Create a list, starting from a copy of an existing list, Sleeper's pre-season ADP, or this season's total points (league scoring) |
 | `/rankings/[slug]` | A list split into FWD / MID / DEF / GK sections with tiers. Edit with drag-and-drop, rank numbers, tier pickers, and adding players |
 | `/trade` | Trade calculator driven by any rankings list, with "to even it up" suggestions |
 

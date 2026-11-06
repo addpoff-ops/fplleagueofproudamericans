@@ -20,12 +20,12 @@ export async function POST(req: Request) {
   if (body?.adminKey && !isOfficial) return NextResponse.json({ error: "Admin key is incorrect." }, { status: 403 });
 
   // Start from a copy of an existing list (the official one by default),
-  // Sleeper's pre-season ADP, this season's total points, or blank.
+  // Sleeper's pre-season ADP, or this season's total points.
   let seed: { playerId: string; pos: string; rank: number; tier: string }[] = [];
   if (startFrom === "sleeper-adp") seed = await seedFromAdp();
   else if (startFrom === "total-points") seed = await seedFromPoints();
   else if (startFrom === "official") seed = (await getEntries({ isOfficial: true })) ?? [];
-  else if (startFrom !== "blank") seed = (await getEntries({ slug: startFrom })) ?? [];
+  else seed = (await getEntries({ slug: startFrom })) ?? [];
 
   const editKey = newEditKey();
   const created = await prisma.$transaction(async (tx) => {

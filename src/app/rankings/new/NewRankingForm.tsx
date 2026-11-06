@@ -47,7 +47,7 @@ export default function NewRankingForm({ sets }: { sets: { slug: string; name: s
       </label>
       <label className="grid gap-1 text-sm">
         <span className="font-medium">Start from</span>
-        <select name="startFrom" defaultValue={sets[0]?.slug ?? "blank"} className="input">
+        <select name="startFrom" defaultValue={sets[0]?.slug ?? "sleeper-adp"} className="input">
           {sets.map((s) => (
             <option key={s.slug} value={s.slug}>
               Copy “{s.name}” by {s.author}
@@ -55,7 +55,6 @@ export default function NewRankingForm({ sets }: { sets: { slug: string; name: s
           ))}
           <option value="sleeper-adp">Use Sleeper Pre-Season ADP</option>
           <option value="total-points">Use Total Points</option>
-          <option value="blank">Blank list</option>
         </select>
         <span className="text-xs text-zinc-500">
           Sleeper ADP and Total Points (this season, using our league&apos;s scoring) set the order within each position. Players keep their position from the official list.
