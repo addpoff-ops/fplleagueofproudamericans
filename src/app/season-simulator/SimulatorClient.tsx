@@ -156,7 +156,8 @@ export default function SimulatorClient({ firstWeek, lastWeek, games, teams }: P
         >
           {manyBusy ? "Simulating…" : `Simulate ${SEASONS.toLocaleString()} seasons`}
         </button>
-        <span className="text-sm text-zinc-500">
+        {/* Rounded "bubble" around the simulation details */}
+        <span className="rounded-2xl border border-zinc-200 bg-white/80 px-4 py-2 text-sm text-zinc-600 shadow-sm backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/85 dark:text-zinc-300">
           Simulation #{run} · weeks {firstWeek}–{lastWeek} · {games.length} games. Each team&apos;s chance to win a game is
           its Power Rankings total divided by both teams&apos; totals.
         </span>
