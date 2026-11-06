@@ -50,8 +50,13 @@ export function tierValue(pos: string | null | undefined, tier: string | null | 
   return TIER_VALUES[pos][tier];
 }
 
-/** Each extra asset in a package counts for this fraction of the one before it. */
-export const DEPTH_FACTOR = 0.5;
+/** The 2nd-best asset in a package counts for this fraction of its value... */
+export const SECOND_PLAYER_WEIGHT = 0.6;
+/** ...and each asset after that counts for this fraction of the previous weight. */
+export const LATER_PLAYER_FACTOR = 0.5;
+
+/** Weight of the i-th best asset (0-based): 100%, 60%, 30%, 15%, ... */
+export const packageWeight = (i: number) => (i === 0 ? 1 : SECOND_PLAYER_WEIGHT * LATER_PLAYER_FACTOR ** (i - 1));
 
 export interface TradeSide {
   raw: number;
@@ -59,15 +64,16 @@ export interface TradeSide {
 }
 
 /**
- * Raw = plain sum. Adjusted = sorted best-first, where the i-th asset is
- * weighted DEPTH_FACTOR^i, so a pile of depth pieces doesn't automatically
- * beat one star (you only have so many starting slots).
+ * Raw = plain sum. Adjusted = sorted best-first and weighted by packageWeight:
+ * the best player counts 100%, the 2nd 60%, the 3rd 30%, then each one half the
+ * one before. So a pile of depth pieces doesn't automatically beat one star
+ * (you only have so many starting slots).
  */
 export function scoreSide(values: number[]): TradeSide {
   const sorted = [...values].sort((a, b) => b - a);
   return {
     raw: sorted.reduce((s, v) => s + v, 0),
-    adjusted: Math.round(sorted.reduce((s, v, i) => s + v * DEPTH_FACTOR ** i, 0)),
+    adjusted: Math.round(sorted.reduce((s, v, i) => s + v * packageWeight(i), 0)),
   };
 }
 

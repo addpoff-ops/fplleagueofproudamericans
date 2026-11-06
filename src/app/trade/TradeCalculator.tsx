@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DEPTH_FACTOR, POSITION_LABEL, scoreSide, verdict, type RankedEntry } from "@/lib/value";
+import { POSITION_LABEL, scoreSide, verdict, type RankedEntry } from "@/lib/value";
 import { POSITION_STYLES } from "@/lib/positions";
 import type { SlimPlayer } from "../rankings/[slug]/RankingBoard";
 import type { PastTrade } from "@/lib/trades";
@@ -123,7 +123,7 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool, pastTr
               : `${v.label}: ${teamName(v.winner === "A" ? 0 : 1)} wins`}
           </div>
           <div className="text-xs text-zinc-500">
-            Each extra player in a package counts for {Math.round(DEPTH_FACTOR * 100)}% of the one before it.
+            In a package, the 2nd player counts 60%, the 3rd 30%, and each one after that half the one before.
           </div>
         </div>
         <div className="flex h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">

@@ -106,8 +106,8 @@ values as-is. Trade values (trade calculator, Player Rankings, team pages) are
 these values ×3, minus 400 (`TRADE_MULTIPLIER`, `TRADE_OFFSET`).
 
 In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
-best-first and weights the i-th player by `0.5^i` (each extra player counts
-for half of the one before it), so a pile of depth pieces
+best-first: the best player counts 100%, the 2nd 60%, the 3rd 30%, and each
+one after that half the one before (`packageWeight`), so a pile of depth pieces
 doesn't automatically beat one star. Under a 10% advantage is a fair trade; 10–20% is a Slight Win, 20–40% a Clear Win, and 40%+ a Robbery.
 
 The official list comes from `data/official-rankings-2026-27.json` (built from
