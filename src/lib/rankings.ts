@@ -66,7 +66,7 @@ export type SeedEntry = { playerId: string; pos: Pos; rank: number; tier: Tier }
  * the official list (the official FWD #3's tier goes to this list's FWD #3);
  * ranks beyond the official list get Z.
  */
-async function seedFromOrder(order: Player[]): Promise<SeedEntry[]> {
+async function seedFromOrder(order: Player[], limit: Record<Pos, number> = SEED_SIZE): Promise<SeedEntry[]> {
   const official = (await getEntries({ isOfficial: true })) ?? [];
   const officialPos = new Map(official.map((e) => [e.playerId, e.pos]));
   const posOf = (p: Player) => officialPos.get(p.id) ?? p.pos;
@@ -75,7 +75,7 @@ async function seedFromOrder(order: Player[]): Promise<SeedEntry[]> {
     const tiers = official.filter((e) => e.pos === pos).map((e) => e.tier);
     order
       .filter((p) => posOf(p) === pos)
-      .slice(0, SEED_SIZE[pos])
+      .slice(0, limit[pos])
       .forEach((p, i) => out.push({ playerId: p.id, pos, rank: i + 1, tier: tiers[i] ?? "Z" }));
   }
   return out;
@@ -89,12 +89,33 @@ export async function seedFromAdp(): Promise<SeedEntry[]> {
   return seedFromOrder(pool.filter((p) => Number.isFinite(adp(p.id))).sort((a, b) => adp(a.id) - adp(b.id)));
 }
 
-/** This season's total fantasy points under the league's scoring (highest first). */
-export async function seedFromPoints(): Promise<SeedEntry[]> {
+/** Players with points this season, ordered by total fantasy points under the league's scoring. */
+async function pointsOrder() {
   const league = await getLeague();
   const [pool, stats] = await Promise.all([playerPool(), getSeasonStats(league.season)]);
   const pts = new Map(pool.filter((p) => stats[p.id]).map((p) => [p.id, scorePoints(stats[p.id], league.scoring_settings)]));
-  return seedFromOrder(pool.filter((p) => pts.has(p.id)).sort((a, b) => pts.get(b.id)! - pts.get(a.id)!));
+  return { order: pool.filter((p) => pts.has(p.id)).sort((a, b) => pts.get(b.id)! - pts.get(a.id)!), pts };
+}
+
+/** This season's total fantasy points under the league's scoring (highest first). */
+export async function seedFromPoints(): Promise<SeedEntry[]> {
+  return seedFromOrder((await pointsOrder()).order);
+}
+
+/**
+ * Player values from the "Total Points" ordering (as on Create your rankings),
+ * but covering every player with points this season, valued with the original
+ * sheet values. Used by Power Rankings' "Total Points" view.
+ */
+export async function pointsValues() {
+  const { order, pts } = await pointsOrder();
+  const all = { F: Infinity, M: Infinity, D: Infinity, GK: Infinity };
+  const values = new Map<string, ConsensusValue>();
+  for (const e of await seedFromOrder(order, all)) {
+    const v = SHEET_TIER_VALUES[e.pos][e.tier];
+    values.set(e.playerId, { pos: e.pos, tier: e.tier, pts: v, exact: v, lists: 1, rank: e.rank, seasonPts: pts.get(e.playerId) });
+  }
+  return values;
 }
 
 export interface ConsensusValue {
@@ -103,6 +124,8 @@ export interface ConsensusValue {
   pts: number; // average original-sheet value across the lists that rank the player (rounded)
   exact: number; // the same average, unrounded
   lists: number; // how many lists rank the player
+  rank?: number; // positional rank (Total Points view)
+  seasonPts?: number; // season fantasy points (Total Points view)
 }
 
 /**

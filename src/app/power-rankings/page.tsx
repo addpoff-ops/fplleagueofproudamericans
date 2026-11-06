@@ -1,5 +1,6 @@
 import { getLeagueData } from "@/lib/league";
-import { consensusValues, type ConsensusValue } from "@/lib/rankings";
+import { consensusValues, pointsValues, type ConsensusValue } from "@/lib/rankings";
+import Link from "next/link";
 import { getPlayers } from "@/lib/sleeper";
 import { POSITION_LABEL, type Pos, type Tier } from "@/lib/value";
 import { Avatar, PageTitle } from "@/components/ui";
@@ -42,15 +43,23 @@ const ordinal = (n: number) => {
 /**
  * Every team ranked by the total value of all rostered players, using the
  * original spreadsheet values (no trade-calculator scaling or discounts).
- * Each player's value is their average across every rankings list on the site;
- * players no list ranks count 0.
+ * Two views (?basis=):
+ *   site    (default) each player's value is their average across every
+ *           rankings list on the site; players no list ranks count 0.
+ *   points  players ordered by this season's total fantasy points (league
+ *           scoring), with tiers borrowed rank-for-rank from the official list,
+ *           as in "Use Total Points" on Create your rankings.
  */
-export default async function PowerRankingsPage() {
-  const [{ teams }, { values, listCount }, players] = await Promise.all([
+export default async function PowerRankingsPage({ searchParams }: { searchParams: Promise<{ basis?: string }> }) {
+  const basis = (await searchParams).basis === "points" ? "points" : "site";
+  const [{ teams }, site, points, players] = await Promise.all([
     getLeagueData(),
-    consensusValues(),
+    basis === "site" ? consensusValues() : null,
+    basis === "points" ? pointsValues() : null,
     getPlayers(),
   ]);
+  const values = points ?? site!.values;
+  const listCount = site?.listCount ?? 1;
   const standing = new Map(teams.map((t, i) => [t.rosterId, i + 1]));
 
   const rows = teams
@@ -76,6 +85,26 @@ export default async function PowerRankingsPage() {
   return (
     <>
       <PageTitle title="Power Rankings" />
+
+      {/* Which values the rankings are based on */}
+      <div className="mb-4 inline-flex rounded-lg border border-zinc-200 bg-white p-1 text-sm dark:border-zinc-800 dark:bg-zinc-900">
+        {[
+          { key: "site", label: "Site rankings", href: "/power-rankings" },
+          { key: "points", label: "Total Points", href: "/power-rankings?basis=points" },
+        ].map((o) => (
+          <Link
+            key={o.key}
+            href={o.href}
+            className={`rounded-md px-4 py-1.5 font-medium transition-colors ${
+              basis === o.key
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            }`}
+          >
+            {o.label}
+          </Link>
+        ))}
+      </div>
 
       {listCount === 0 ? (
         <div className="card p-8 text-center text-sm text-zinc-500">No rankings lists yet.</div>
@@ -204,7 +233,11 @@ export default async function PowerRankingsPage() {
                               </span>
                               <span
                                 className={`flex w-10 shrink-0 items-center justify-center text-xs font-bold ${HEAT[e.tier]}`}
-                                title={`Consensus tier ${e.tier} (average ${e.pts} across ${e.lists} ${e.lists === 1 ? "list" : "lists"})`}
+                                title={
+                                  basis === "points"
+                                    ? `Tier ${e.tier}: ${POSITION_LABEL[p]} #${e.rank} by season points (${e.seasonPts} pts)`
+                                    : `Consensus tier ${e.tier} (average ${e.pts} across ${e.lists} ${e.lists === 1 ? "list" : "lists"})`
+                                }
                               >
                                 {e.tier}
                               </span>
@@ -220,8 +253,19 @@ export default async function PowerRankingsPage() {
             })}
           </div>
           <p className="mt-3 text-xs text-zinc-500">
-            In each team&apos;s player list: the number is the player&apos;s average value across all lists; the coloured
-            cell is their consensus tier, the tier closest to that average (green = top tiers, red = bottom).
+            {basis === "points" ? (
+              <>
+                Total Points: players are ordered by this season&apos;s fantasy points (our league&apos;s scoring), and each
+                gets the tier of the official list&apos;s player at the same rank, valued with the original spreadsheet
+                values. The coloured cell is that tier (green = top tiers, red = bottom). Players with no points this
+                season count 0.
+              </>
+            ) : (
+              <>
+                In each team&apos;s player list: the number is the player&apos;s average value across all lists; the
+                coloured cell is their consensus tier, the tier closest to that average (green = top tiers, red = bottom).
+              </>
+            )}
           </p>
         </>
       )}
