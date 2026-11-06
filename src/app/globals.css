@@ -7,16 +7,20 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #081a46;
-    --foreground: #e8ecf6;
-    /* Deep sapphire gradient behind every page */
-    --background-image: radial-gradient(120% 80% at 50% -10%, #1a3f9e 0%, transparent 60%),
-      linear-gradient(165deg, #0f2d78 0%, #0a2160 35%, #071746 70%, #040d2c 100%);
-    /* Dark surfaces (cards, rows, borders, header, inputs) tinted navy to sit on the blue */
-    --color-zinc-950: #050f2e;
-    --color-zinc-900: #0c1d4c;
-    --color-zinc-800: #1a2f68;
-    --color-zinc-700: #2b4385;
+    --background: #1d6b30;
+    --foreground: #eef6ee;
+    /* Well-watered pitch: rich green with faint mowing stripes, a soft
+       floodlight glow at the top, and a darker edge at the bottom. */
+    --background-image: radial-gradient(120% 70% at 50% -10%, rgba(120, 220, 120, 0.22) 0%, transparent 60%),
+      linear-gradient(180deg, transparent 0%, transparent 55%, rgba(4, 30, 12, 0.55) 100%),
+      repeating-linear-gradient(90deg, #1c7232 0px, #1c7232 120px, #1a6b2e 120px, #1a6b2e 240px);
+    /* Dark surfaces (cards, rows, borders, header, inputs) tinted deep green */
+    --color-zinc-950: #062312;
+    --color-zinc-900: #0b311a;
+    --color-zinc-800: #174a2a;
+    --color-zinc-700: #286340;
+    /* Secondary text: lighter so it stays readable on the green */
+    --color-zinc-500: #e0eee2;
   }
 }
 
