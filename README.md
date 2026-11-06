@@ -49,8 +49,9 @@ C) any other available player (ties go to the higher projection). Players whose
 games have kicked off are never moved. A replacement can play a different
 position as long as the lineup still follows the formation rules (1 GK, 3–5 DEF,
 3–5 MID, 1–3 FWD; keepers only replace keepers): the formation changes to match
-and the lineup is saved in Sleeper's order: forwards, then midfielders, then
-defenders, with the goalkeeper last. Each change appears as a notification on the page.
+and players are arranged within Sleeper's lineup spots so they show as forwards,
+then midfielders, then defenders, with the goalkeeper last (as far as the spots
+allow). Each change appears as a notification on the page.
 
 **How it works:** team sheets and kickoff times come from Sleeper's public
 `/scores` feed. Lineups are read and saved through Sleeper's *private* GraphQL
