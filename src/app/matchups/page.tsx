@@ -170,7 +170,7 @@ interface FormRow {
 }
 
 /**
- * Players projected furthest above their recent form: this week's projection
+ * Owned players projected furthest above their recent form: this week's projection
  * divided by their average points over their last four games of 60+ minutes
  * (scored on the same stats as the projection). Players without four such games
  * are left out.
@@ -189,6 +189,8 @@ async function formRows(
   for (const t of teams) for (const id of t.players) owner.set(id, t.teamName);
   const rows: FormRow[] = [];
   for (const id of Object.keys(projStats)) {
+    const ownedBy = owner.get(id);
+    if (!ownedBy) continue; // owned players only
     const player = players[id];
     const pos = player?.pos as Pos | undefined;
     if (!player || !pos || !COLS.includes(pos)) continue;
@@ -198,7 +200,7 @@ async function formRows(
     if (recent <= 0) continue;
     const projected = projectPoints(projStats[id], pos, scoring, PROJECTION_ADJUSTMENTS[id] ?? 1).points;
     if (projected <= 0) continue;
-    rows.push({ id, player, pos, owner: owner.get(id) ?? "Free agent", projected, recent, multiplier: projected / recent });
+    rows.push({ id, player, pos, owner: ownedBy, projected, recent, multiplier: projected / recent });
   }
   return rows.sort((a, b) => b.multiplier - a.multiplier).slice(0, 20);
 }
