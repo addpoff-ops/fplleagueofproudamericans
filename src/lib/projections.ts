@@ -31,9 +31,17 @@ export async function getWeekProjectionStats(season: string, week: number): Prom
   return ((await res.json()) as Record<string, StatLine> | null) ?? {};
 }
 
+export interface ProjectionLine {
+  stat: ProjStat;
+  value: number; // projected amount (cs: probability 0-1)
+  perUnit: number; // league points per 1 of this stat at the player's position
+  points: number; // value x perUnit
+}
+
 export interface Projection {
   points: number;
   stats: Partial<Record<ProjStat, number>>; // expected counts (cs as a probability)
+  lines: ProjectionLine[]; // every counted stat, including zeros
 }
 
 /**
@@ -45,15 +53,17 @@ export interface Projection {
 export function projectPoints(line: StatLine | undefined, pos: string, scoring: Record<string, number>): Projection {
   const p = POS_KEY[pos];
   const stats: Projection["stats"] = {};
+  const lines: ProjectionLine[] = [];
   let points = 0;
-  if (!line || !p) return { points: 0, stats };
+  if (!p) return { points: 0, stats, lines };
   for (const s of PROJ_STATS) {
     if (s === "sv" && pos !== "GK") continue; // saves count for goalkeepers only
-    const v = line[`pos_${p}_${s}`] ?? line[s] ?? 0;
-    if (!v) continue;
-    stats[s] = v;
-    points += v * (scoring[`pos_${p}_${s}`] ?? 0);
+    const value = (line && (line[`pos_${p}_${s}`] ?? line[s])) || 0;
+    const perUnit = scoring[`pos_${p}_${s}`] ?? 0;
+    if (value) stats[s] = value;
+    lines.push({ stat: s, value, perUnit, points: value * perUnit });
+    points += value * perUnit;
   }
   // Full precision; pages round once when displaying.
-  return { points, stats };
+  return { points, stats, lines };
 }

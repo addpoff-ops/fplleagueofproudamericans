@@ -91,19 +91,58 @@ function teamSide(team: Team, players: Record<string, Player>, proj: (id: string
   return { team, byPos, bench, total, shape, benchTotal: sum(bench) };
 }
 
+/** How a projected amount is shown: clean sheet as a %, everything else as an expected count. */
+const showValue = (stat: string, v: number) => (stat === "cs" ? `${Math.round(v * 100)}%` : v.toFixed(2));
+
+/** A player row; clicking the score opens the stat-by-stat breakdown underneath. */
 function PlayerRow({ r }: { r: Row }) {
   return (
-    <li className="flex items-stretch border-b border-zinc-100 text-sm last:border-0 dark:border-zinc-800/80">
-      <span className="flex min-w-0 flex-1 items-center gap-2 bg-zinc-50 px-2.5 py-1.5 dark:bg-zinc-950/40">
-        <span className="truncate">{r.player?.name ?? r.id}</span>
-        <span className="shrink-0 text-[11px] text-zinc-500">{r.player?.team ?? ""}</span>
-      </span>
-      <span
-        className={`flex w-14 shrink-0 items-center justify-center text-xs font-bold tabular-nums ${heat(r.pr.points)}`}
-        title={breakdown(r.pr)}
-      >
-        {fmt(r.pr.points)}
-      </span>
+    <li className="border-b border-zinc-100 text-sm last:border-0 dark:border-zinc-800/80">
+      <details className="group/p">
+        <summary className="flex cursor-pointer list-none items-stretch [&::-webkit-details-marker]:hidden" title={breakdown(r.pr)}>
+          <span className="flex min-w-0 flex-1 items-center gap-2 bg-zinc-50 px-2.5 py-1.5 dark:bg-zinc-950/40">
+            <span className="truncate">{r.player?.name ?? r.id}</span>
+            <span className="shrink-0 text-[11px] text-zinc-500">{r.player?.team ?? ""}</span>
+          </span>
+          <span
+            className={`flex w-14 shrink-0 items-center justify-center gap-0.5 text-xs font-bold tabular-nums underline decoration-dotted underline-offset-2 ${heat(r.pr.points)}`}
+          >
+            {fmt(r.pr.points)}
+          </span>
+        </summary>
+        <div className="bg-zinc-50/60 px-2.5 pb-2 pt-1 dark:bg-zinc-950/60">
+          {r.pr.lines.length === 0 ? (
+            <p className="py-1 text-xs text-zinc-500">No projection for this player.</p>
+          ) : (
+            <table className="w-full text-xs tabular-nums">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wide text-zinc-500">
+                  <th className="py-1 text-left font-semibold">Stat</th>
+                  <th className="py-1 text-right font-semibold">Projected</th>
+                  <th className="py-1 text-right font-semibold">Pts each</th>
+                  <th className="py-1 text-right font-semibold">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                {r.pr.lines.map((l) => (
+                  <tr key={l.stat} className={l.value ? "" : "text-zinc-500"}>
+                    <td className="py-0.5">{PROJ_LABEL[l.stat]}</td>
+                    <td className="py-0.5 text-right">{showValue(l.stat, l.value)}</td>
+                    <td className="py-0.5 text-right">{l.perUnit}</td>
+                    <td className="py-0.5 text-right font-semibold">{l.points.toFixed(2)}</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-zinc-200 font-bold dark:border-zinc-700">
+                  <td className="pt-1" colSpan={3}>
+                    Total
+                  </td>
+                  <td className="pt-1 text-right">{r.pr.points.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+        </div>
+      </details>
     </li>
   );
 }
@@ -239,8 +278,8 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
             Projected points use Sleeper&apos;s weekly projections for goals, assists, chances created, shots on target,
             tackles won, interceptions, aerials won, clean-sheet likelihood and (goalkeepers only) saves, scored with our
             league&apos;s settings. Each team&apos;s total is its best XI by projection, following formation rules: 1
-            goalkeeper, 3–5 defenders, 3–5 midfielders and 1–3 forwards (injured reserve excluded). Hover a number to
-            see the breakdown.
+            goalkeeper, 3–5 defenders, 3–5 midfielders and 1–3 forwards (injured reserve excluded). Click a player&apos;s
+            score to see each projected stat and the points it earns.
           </p>
         </>
       )}
