@@ -47,7 +47,7 @@ function describe(plan: Plan, data: Data) {
   if (plan.swaps.length && plan.formationAfter !== plan.formationBefore)
     parts.push(`Formation changed from ${plan.formationBefore} to ${plan.formationAfter}`);
   if (plan.repaired)
-    parts.push(`Your lineup didn't match its formation, so players were put back in their positions (${plan.formationAfter})`);
+    parts.push(`Your lineup didn't match its saved formation (${plan.formationBefore}), so the formation was set to ${plan.formationAfter}`);
   for (const u of plan.unresolved) parts.push(`${name(data, u.out)} isn't starting, but no eligible replacement was available`);
   return parts.join(". ") + ".";
 }
@@ -103,11 +103,14 @@ export async function runForSetter(
         // Sleeper checks the lineup against the week's formation, so set the
         // formation first; if the lineup then fails to save, put it back.
         const changeFormation = plan.formationAfter !== formation;
+        const changeStarters = plan.newStarters.some((s, i) => s !== starters[i]);
         if (changeFormation) await saveFormation(token, leagueId, setter.rosterId, ctx.week, plan.formationAfter);
         try {
-          const saved = await updateMatchupLeg(token, leagueId, setter.rosterId, ctx.week, plan.newStarters);
-          const ok = saved?.starters && plan.newStarters.every((s, i) => saved.starters![i] === s);
-          if (!ok) throw new Error("Sleeper didn't confirm the new lineup.");
+          if (changeStarters) {
+            const saved = await updateMatchupLeg(token, leagueId, setter.rosterId, ctx.week, plan.newStarters);
+            const ok = saved?.starters && plan.newStarters.every((s, i) => saved.starters![i] === s);
+            if (!ok) throw new Error("Sleeper didn't confirm the new lineup.");
+          }
         } catch (e) {
           if (changeFormation && formation) await saveFormation(token, leagueId, setter.rosterId, ctx.week, formation).catch(() => {});
           throw e;

@@ -50,9 +50,11 @@ games have kicked off are never moved. A replacement can play a different
 position as long as the lineup still follows the formation rules (1 GK, 3–5 DEF,
 3–5 MID, 1–3 FWD; keepers only replace keepers): the formation changes to match
 and the new formation is saved on Sleeper
-(`roster_update_metadata`, `metadata.formation` per week) before the lineup,
-which is listed forwards, midfielders, defenders, then the goalkeeper. A lineup
-whose players don't match its saved formation is repaired the same way. Each change appears as a notification on the page.
+(`roster_update_metadata`, `metadata.formation` per week) before the lineup.
+Sleeper accepts a lineup when each starter is in a spot their position can fill
+(F, M×3, D×3, GK, F/M, M/D, F/M/D) and the position counts match the week's
+formation; the app then shows players grouped by that formation. A lineup that
+doesn't match its saved formation is repaired the same way. Each change appears as a notification on the page.
 
 **How it works:** team sheets and kickoff times come from Sleeper's public
 `/scores` feed. Lineups are read and saved through Sleeper's *private* GraphQL
