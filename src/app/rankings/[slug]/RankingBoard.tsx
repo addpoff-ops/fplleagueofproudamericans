@@ -211,11 +211,6 @@ export default function RankingBoard({ set, initialSections, pool, owners }: Pro
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight">{set.name}</h1>
-            {set.isOfficial && (
-              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                Official
-              </span>
-            )}
           </div>
           <p className="mt-1 text-sm text-zinc-500">
             by {set.author} · {total} players · updated {new Date(set.updatedAt).toLocaleDateString()}

@@ -28,11 +28,6 @@ export default async function RankingsPage() {
             <Link key={s.slug} href={`/rankings/${s.slug}`} className="card block p-4 hover:border-emerald-500">
               <div className="flex items-center gap-2">
                 <span className="font-semibold">{s.name}</span>
-                {s.isOfficial && (
-                  <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                    Official
-                  </span>
-                )}
               </div>
               <div className="mt-0.5 text-xs text-zinc-500">
                 by {s.author} · {s.count} players · updated {new Date(s.updatedAt).toLocaleDateString()}

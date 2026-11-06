@@ -83,7 +83,6 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool }: Prop
         <select value={slug} onChange={(e) => setSlug(e.target.value)} className="input max-w-sm">
           {sets.map((s) => (
             <option key={s.slug} value={s.slug}>
-              {s.isOfficial ? "★ " : ""}
               {s.name}
               {s.author ? `, by ${s.author}` : ""}
             </option>
