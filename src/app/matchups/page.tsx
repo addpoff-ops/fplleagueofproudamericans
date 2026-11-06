@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { getLeagueData, type Team } from "@/lib/league";
-import { getPlayers, getState, type Player } from "@/lib/sleeper";
+import { getPlayers, getSeasonStats, getState, type Player } from "@/lib/sleeper";
 import { getSchedule } from "@/lib/schedule";
-import { getWeekProjectionStats, projectPoints, PROJ_LABEL, PROJ_STATS, PROJECTION_ADJUSTMENTS, type Projection } from "@/lib/projections";
+import { fillMissingKeepers, getWeekProjectionStats, projectPoints, PROJ_LABEL, PROJ_STATS, PROJECTION_ADJUSTMENTS, type Projection } from "@/lib/projections";
 import { POSITION_LABEL, type Pos } from "@/lib/value";
 import { Avatar, PageTitle } from "@/components/ui";
 
@@ -41,6 +41,7 @@ interface Row {
   player?: Player;
   pos: Pos;
   pr: Projection;
+  note?: string; // shown in the breakdown, e.g. for estimated keepers
 }
 
 // Formation rules for the best XI: 1 GK, 3-5 DEF, 3-5 MID, 1-3 FWD (11 players).
@@ -76,10 +77,15 @@ function bestXI(rows: Row[]) {
   return best;
 }
 
-function teamSide(team: Team, players: Record<string, Player>, proj: (id: string, pos: Pos) => Projection) {
+function teamSide(
+  team: Team,
+  players: Record<string, Player>,
+  proj: (id: string, pos: Pos) => Projection,
+  notes: Record<string, string>,
+) {
   const toRow = (id: string): Row => {
     const pos = (players[id]?.pos ?? "M") as Pos;
-    return { id, player: players[id], pos, pr: proj(id, pos) };
+    return { id, player: players[id], pos, pr: proj(id, pos), note: notes[id] };
   };
   const reserve = new Set(team.reserve);
   const available = team.players.filter((p) => !reserve.has(p)).map(toRow);
@@ -111,6 +117,7 @@ function PlayerRow({ r }: { r: Row }) {
           </span>
         </summary>
         <div className="bg-zinc-50/60 px-2.5 pb-2 pt-1 dark:bg-zinc-950/60">
+          {r.note && <p className="py-1 text-[11px] text-sky-600 dark:text-sky-400">{r.note}</p>}
           {PROJECTION_ADJUSTMENTS[r.id] !== undefined && (
             <p className="py-1 text-[11px] text-amber-600 dark:text-amber-400">
               Test adjustment: RotoWire&apos;s projected stats × {PROJECTION_ADJUSTMENTS[r.id]}.
@@ -156,7 +163,13 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
   const [{ league, teams }, state, players] = await Promise.all([getLeagueData(), getState(), getPlayers()]);
   const requested = Number((await searchParams).week);
   const week = Number.isInteger(requested) && requested >= 1 && requested <= 38 ? requested : state.week;
-  const [schedule, projStats] = await Promise.all([getSchedule(week, week), getWeekProjectionStats(league.season, week)]);
+  const [schedule, rawProj, seasonStats] = await Promise.all([
+    getSchedule(week, week),
+    getWeekProjectionStats(league.season, week),
+    getSeasonStats(league.season),
+  ]);
+  // Fill in keepers RotoWire left out (see fillMissingKeepers).
+  const { proj: projStats, notes: estimateNotes } = fillMissingKeepers(rawProj, players, seasonStats);
 
   const proj = (id: string, pos: Pos) =>
     projectPoints(projStats[id], pos, league.scoring_settings, PROJECTION_ADJUSTMENTS[id] ?? 1);
@@ -164,8 +177,8 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
   const games = (schedule ?? [])
     .map((g) => ({ home: byId.get(g.home), away: byId.get(g.away) }))
     .filter((g): g is { home: Team; away: Team } => !!g.home && !!g.away)
-    .map((g) => ({ home: teamSide(g.home, players, proj), away: teamSide(g.away, players, proj) }));
-  const hasProjections = Object.keys(projStats).length > 0;
+    .map((g) => ({ home: teamSide(g.home, players, proj, estimateNotes), away: teamSide(g.away, players, proj, estimateNotes) }));
+  const hasProjections = Object.keys(rawProj).length > 0;
 
   return (
     <>

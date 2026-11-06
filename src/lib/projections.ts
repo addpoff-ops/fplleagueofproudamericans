@@ -87,3 +87,51 @@ export function projectPoints(
 export const PROJECTION_ADJUSTMENTS: Record<string, number> = {
   "10130": 0.5, // Charalampos Kostoulas
 };
+
+/**
+ * RotoWire sometimes leaves a club's goalkeeper out of its weekly projections
+ * (e.g. when it isn't sure who will start). For a club that plays that week
+ * (its outfield players are projected) but has no projected goalkeeper, give
+ * each fit keeper at the club an estimated line:
+ *   - clean sheet % and goals against: the average of the club's own projected
+ *     defenders for the same game;
+ *   - saves and the smaller stats: the keeper's per-game averages this season,
+ *     or (saves only) the average of this week's projected keepers if he
+ *     hasn't played.
+ * Keepers listed as "Out" are skipped. Returns the filled-in projections and a
+ * note per estimated keeper.
+ */
+export function fillMissingKeepers(
+  proj: Record<string, StatLine>,
+  players: Record<string, { pos: string; team: string | null; injury: string | null }>,
+  season: Record<string, StatLine>,
+) {
+  const out: Record<string, StatLine> = { ...proj };
+  const notes: Record<string, string> = {};
+  const clubOf = (id: string) => players[id]?.team ?? null;
+  const projectedClubs = new Set(Object.keys(proj).map(clubOf).filter(Boolean));
+  const clubsWithKeeper = new Set(Object.keys(proj).filter((id) => players[id]?.pos === "GK").map(clubOf));
+  const keeperSaves = Object.keys(proj).filter((id) => players[id]?.pos === "GK").map((id) => proj[id].pos_gk_sv ?? proj[id].sv ?? 0);
+  const avgSaves = keeperSaves.length ? keeperSaves.reduce((a, b) => a + b, 0) / keeperSaves.length : 0;
+  const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+
+  for (const club of projectedClubs) {
+    if (!club || clubsWithKeeper.has(club)) continue;
+    const defenders = Object.keys(proj).filter((id) => clubOf(id) === club && players[id]?.pos === "D");
+    const cs = avg(defenders.map((id) => proj[id].pos_d_cs ?? proj[id].cs ?? 0));
+    const ga = avg(defenders.map((id) => proj[id].pos_d_ga ?? proj[id].ga ?? 0));
+    const keepers = Object.keys(players).filter(
+      (id) => players[id].pos === "GK" && players[id].team === club && !/^out$/i.test(players[id].injury ?? ""),
+    );
+    for (const id of keepers) {
+      const s = season[id] ?? {};
+      const gp = s.gp ?? 0;
+      const perGame = (k: string) => (gp ? ((s[`pos_gk_${k}`] ?? s[k] ?? 0) as number) / gp : 0);
+      const line: StatLine = { pos_gk_cs: cs, pos_gk_ga: ga, pos_gk_sv: gp ? perGame("sv") : avgSaves };
+      for (const k of ["kp", "tkw", "int", "aer", "clr", "cos", "acnc"]) line[`pos_gk_${k}`] = perGame(k);
+      out[id] = line;
+      notes[id] = `Estimated: RotoWire has no keeper projection for ${club} this week. Clean sheet and goals against come from ${club}'s projected defenders; ${gp ? "saves and other stats from his per-game averages this season" : "saves from the average projected keeper (he hasn't played this season)"}.`;
+    }
+  }
+  return { proj: out, notes };
+}
