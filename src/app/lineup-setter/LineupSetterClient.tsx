@@ -61,8 +61,8 @@ export default function LineupSetterClient({ setter, runs, priorities, scheduler
             <li>
               A replacement can play a different position, as long as the lineup still follows the formation rules: 1
               goalkeeper, 3–5 defenders, 3–5 midfielders and 1–3 forwards (goalkeepers are only replaced by goalkeepers). The
-              formation changes to match, and players are moved between flex spots so everyone is in a slot for their
-              position.
+              formation changes to match, and the lineup is saved in Sleeper&apos;s order: forwards, then midfielders, then
+              defenders, then the goalkeeper.
             </li>
             <li>Every change shows up here as a notification.</li>
           </ol>
