@@ -15,4 +15,6 @@ export const EPL_CLUBS = new Set(
 // use, keyed by Sleeper player ID (confirmed against the draft results).
 export const PLAYER_OVERRIDES: Record<string, { name: string; positions: string[]; team: string }> = {
   "1031": { name: "James Trafford", positions: ["GK"], team: "LEE" }, // Sleeper record holds Nottingham Forest club data
+  "1047": { name: "Sander Berge", positions: ["M"], team: "FUL" }, // Sleeper record holds Everton club data
+  "1226": { name: "Victor Lindelöf", positions: ["D"], team: "AVL" }, // Sleeper record holds Leeds club data
 };
