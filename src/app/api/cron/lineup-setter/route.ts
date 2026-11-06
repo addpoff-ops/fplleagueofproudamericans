@@ -11,8 +11,20 @@ export const maxDuration = 60;
  * out. Requires "Authorization: Bearer <CRON_SECRET>".
  */
 async function handle(req: Request) {
-  if (!cronAuthorized(req.headers.get("authorization")))
+  if (!cronAuthorized(req.headers.get("authorization"))) {
+    // Record rejected scheduler calls (secret missing or mismatched) so the
+    // status endpoint can tell "not running" apart from "wrong secret".
+    if (req.headers.get("authorization")) {
+      await prisma.schedulerHeartbeat
+        .upsert({
+          where: { id: "lineup-setter-rejected" },
+          create: { id: "lineup-setter-rejected", lastRunAt: new Date(), lastResult: "rejected: CRON_SECRET did not match" },
+          update: { lastRunAt: new Date() },
+        })
+        .catch(() => {});
+    }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   if (!lineupConfigured()) return NextResponse.json({ error: "LINEUP_SECRET not set" }, { status: 503 });
   let result: Awaited<ReturnType<typeof runAll>> | { error: string };
   try {
