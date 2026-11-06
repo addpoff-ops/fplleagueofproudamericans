@@ -71,12 +71,22 @@ export function scoreSide(values: number[]): TradeSide {
   };
 }
 
+/**
+ * Advantage = how much more one side got, as a % of the bigger side.
+ *   under 10%      → Fair trade
+ *   10% – <25%     → Slight Win
+ *   25% – <50%     → Clear Win
+ *   50% or more    → Robbery
+ * Thresholds use the exact advantage; the % shown is rounded down to one decimal.
+ */
 export function verdict(a: number, b: number) {
   if (a + b === 0) return { label: "Add players to evaluate", winner: null as null | "A" | "B", pct: 0 };
-  const pct = Math.round((Math.abs(a - b) / Math.max(a, b)) * 100);
-  if (pct <= 5) return { label: "Fair trade", winner: null, pct };
+  const exact = (Math.abs(a - b) / Math.max(a, b)) * 100;
+  // One decimal, rounded down, so the shown % always matches its label (24.99 → 24.9).
+  const pct = Math.floor(exact * 10) / 10;
+  if (exact < 10) return { label: "Fair trade", winner: null, pct };
   const winner = a > b ? ("A" as const) : ("B" as const);
-  const label = pct <= 15 ? "Slight edge" : pct <= 30 ? "Clear edge" : "Lopsided";
+  const label = exact < 25 ? "Slight Win" : exact < 50 ? "Clear Win" : "Robbery";
   return { label, winner, pct };
 }
 

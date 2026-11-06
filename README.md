@@ -108,7 +108,7 @@ these values ×3, minus 400 (`TRADE_MULTIPLIER`, `TRADE_OFFSET`).
 In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
 best-first and weights the i-th player by `0.5^i` (each extra player counts
 for half of the one before it), so a pile of depth pieces
-doesn't automatically beat one star. Within 5% counts as fair.
+doesn't automatically beat one star. Under a 10% advantage is a fair trade; 10–25% is a Slight Win, 25–50% a Clear Win, and 50%+ a Robbery.
 
 The official list comes from `data/official-rankings-2026-27.json` (built from
 the (A) sheets, with names matched to Sleeper IDs). Sleeper's record for James
