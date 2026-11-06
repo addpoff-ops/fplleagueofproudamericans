@@ -69,6 +69,9 @@ export async function DELETE(req: Request, { params }: Ctx) {
   const { slug } = await params;
   const { set, error } = await authorize(req, slug);
   if (error) return error;
+  // The official list drives defaults, tiers for new lists and the Total Points views.
+  if (set.isOfficial)
+    return NextResponse.json({ error: "The official list can't be deleted. Make another list official first." }, { status: 409 });
   await prisma.rankingSet.delete({ where: { id: set.id } });
   return NextResponse.json({ ok: true });
 }

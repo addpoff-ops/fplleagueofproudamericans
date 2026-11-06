@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listRankingSets } from "@/lib/rankings";
 import { PageTitle } from "@/components/ui";
+import RankingsList from "./RankingsList";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Player Rankings" };
@@ -23,19 +24,7 @@ export default async function RankingsPage() {
           No rankings yet. <Link href="/rankings/new" className="text-emerald-600 underline">Create the first list</Link>.
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {sets.map((s) => (
-            <Link key={s.slug} href={`/rankings/${s.slug}`} className="card block p-4 hover:border-emerald-500">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{s.name}</span>
-              </div>
-              <div className="mt-0.5 text-xs text-zinc-500">
-                by {s.author} · {s.count} players · updated {new Date(s.updatedAt).toLocaleDateString()}
-              </div>
-              {s.description && <p className="mt-2 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{s.description}</p>}
-            </Link>
-          ))}
-        </div>
+        <RankingsList sets={sets} />
       )}
     </>
   );
