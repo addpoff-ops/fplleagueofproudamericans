@@ -71,9 +71,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
-        <footer className="mx-auto max-w-6xl px-4 pb-8 text-xs text-zinc-500">
-          League data from the Sleeper API.
-        </footer>
       </body>
     </html>
   );

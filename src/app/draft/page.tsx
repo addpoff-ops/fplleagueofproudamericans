@@ -54,6 +54,7 @@ export default async function DraftPage() {
         </div>
       </div>
       </div>
+      <p className="mt-6 text-xs text-zinc-500">League data from the Sleeper API.</p>
     </>
   );
 }
