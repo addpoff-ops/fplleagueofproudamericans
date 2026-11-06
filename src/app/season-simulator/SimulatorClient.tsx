@@ -24,18 +24,8 @@ interface Props {
   teams: Team[];
 }
 
-/** How far win chances are stretched from 50/50 (2 = double the spread). */
-const SPREAD = 2;
-
-/**
- * Chance (0-1) that `a` beats `b`: its power total over the sum of both, then
- * stretched away from 50% by SPREAD (doubling the standard deviation of the
- * percentages across matchups), capped at 2%-98%.
- */
-const winChance = (a: number, b: number) => {
-  const base = a + b > 0 ? a / (a + b) : 0.5;
-  return Math.min(0.98, Math.max(0.02, 0.5 + SPREAD * (base - 0.5)));
-};
+/** Chance (0-1) that `a` beats `b`: its power total over the sum of both. */
+const winChance = (a: number, b: number) => (a + b > 0 ? a / (a + b) : 0.5);
 
 /** One simulated season: a weighted coin flip for every remaining game. */
 function simulate(games: ScheduledGame[], power: Map<number, number>) {
@@ -169,7 +159,7 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
         </button>
         <span className="text-sm text-zinc-500">
           Simulation #{run} · weeks {firstWeek}–{lastWeek} · {games.length} games. Each team&apos;s chance to win a game is
-          its Power Rankings total divided by both teams&apos; totals, with the spread from 50/50 doubled.
+          its Power Rankings total divided by both teams&apos; totals.
         </span>
       </div>
 
