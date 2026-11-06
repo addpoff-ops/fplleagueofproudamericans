@@ -24,8 +24,18 @@ interface Props {
   teams: Team[];
 }
 
-/** Chance (0-1) that `a` beats `b`: its power total over the sum of both. */
-const winChance = (a: number, b: number) => (a + b > 0 ? a / (a + b) : 0.5);
+/** How far win chances are stretched from 50/50 (2 = double the spread). */
+const SPREAD = 2;
+
+/**
+ * Chance (0-1) that `a` beats `b`: its power total over the sum of both, then
+ * stretched away from 50% by SPREAD (doubling the standard deviation of the
+ * percentages across matchups), capped at 2%-98%.
+ */
+const winChance = (a: number, b: number) => {
+  const base = a + b > 0 ? a / (a + b) : 0.5;
+  return Math.min(0.98, Math.max(0.02, 0.5 + SPREAD * (base - 0.5)));
+};
 
 /** One simulated season: a weighted coin flip for every remaining game. */
 function simulate(games: ScheduledGame[], power: Map<number, number>) {
@@ -35,6 +45,68 @@ function simulate(games: ScheduledGame[], power: Map<number, number>) {
   });
 }
 
+interface ManyResult {
+  rosterId: number;
+  avgWins: number;
+  avgLosses: number;
+  avgFinish: number;
+  playoffPct: number;
+  firstPct: number;
+  best: number;
+  worst: number;
+}
+
+/** Run `n` full seasons and summarise where each team finishes. */
+function simulateMany(n: number, games: ScheduledGame[], power: Map<number, number>, teams: Team[], playoffTeams: number) {
+  const acc = new Map(teams.map((t) => [t.rosterId, { wins: 0, losses: 0, finish: 0, playoffs: 0, first: 0, best: 99, worst: 0 }]));
+  const chances = games.map((g) => winChance(power.get(g.home) ?? 0, power.get(g.away) ?? 0));
+  for (let k = 0; k < n; k++) {
+    const simWins = new Map<number, number>(teams.map((t) => [t.rosterId, 0]));
+    const played = new Map<number, number>(teams.map((t) => [t.rosterId, 0]));
+    games.forEach((g, i) => {
+      const winner = Math.random() < chances[i] ? g.home : g.away;
+      simWins.set(winner, (simWins.get(winner) ?? 0) + 1);
+      played.set(g.home, (played.get(g.home) ?? 0) + 1);
+      played.set(g.away, (played.get(g.away) ?? 0) + 1);
+    });
+    // Same table order as a single simulation: wins, then fewer losses, then real points scored.
+    const order = teams
+      .map((t) => {
+        const w = t.wins + simWins.get(t.rosterId)!;
+        const l = t.losses + (played.get(t.rosterId)! - simWins.get(t.rosterId)!);
+        return { t, w, l };
+      })
+      .sort((a, b) => b.w - a.w || a.l - b.l || b.t.pointsFor - a.t.pointsFor);
+    order.forEach((r, i) => {
+      const a = acc.get(r.t.rosterId)!;
+      a.wins += r.w;
+      a.losses += r.l;
+      a.finish += i + 1;
+      if (i < playoffTeams) a.playoffs++;
+      if (i === 0) a.first++;
+      a.best = Math.min(a.best, i + 1);
+      a.worst = Math.max(a.worst, i + 1);
+    });
+  }
+  return teams
+    .map<ManyResult>((t) => {
+      const a = acc.get(t.rosterId)!;
+      return {
+        rosterId: t.rosterId,
+        avgWins: a.wins / n,
+        avgLosses: a.losses / n,
+        avgFinish: a.finish / n,
+        playoffPct: (a.playoffs / n) * 100,
+        firstPct: (a.first / n) * 100,
+        best: a.best,
+        worst: a.worst,
+      };
+    })
+    .sort((x, y) => x.avgFinish - y.avgFinish);
+}
+
+const SEASONS = 1000;
+
 export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, games, teams }: Props) {
   const power = useMemo(() => new Map(teams.map((t) => [t.rosterId, t.power])), [teams]);
   const byId = useMemo(() => new Map(teams.map((t) => [t.rosterId, t])), [teams]);
@@ -43,6 +115,8 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
   const [run, setRun] = useState(1);
   useEffect(() => setResults(simulate(games, power)), [games, power]);
   const [openWeek, setOpenWeek] = useState<number | null>(null);
+  const [many, setMany] = useState<ManyResult[] | null>(null);
+  const [manyBusy, setManyBusy] = useState(false);
 
   const table = useMemo(() => {
     return teams
@@ -72,11 +146,79 @@ export default function SimulatorClient({ firstWeek, lastWeek, playoffTeams, gam
         >
           Re-simulate
         </button>
+        <button
+          className="btn-ghost"
+          disabled={manyBusy}
+          onClick={() => {
+            setManyBusy(true);
+            // Let the button show "Simulating…" before the work starts.
+            setTimeout(() => {
+              setMany(simulateMany(SEASONS, games, power, teams, playoffTeams));
+              setManyBusy(false);
+            }, 20);
+          }}
+        >
+          {manyBusy ? "Simulating…" : `Simulate ${SEASONS.toLocaleString()} seasons`}
+        </button>
         <span className="text-sm text-zinc-500">
           Simulation #{run} · weeks {firstWeek}–{lastWeek} · {games.length} games. Each team&apos;s chance to win a game is
-          its Power Rankings total divided by both teams&apos; totals.
+          its Power Rankings total divided by both teams&apos; totals, with the spread from 50/50 doubled.
         </span>
       </div>
+
+      {many && (
+        <section>
+          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-lg font-bold tracking-tight">{SEASONS.toLocaleString()}-season simulation</h2>
+            <button className="text-xs text-zinc-500 underline" onClick={() => setMany(null)}>
+              Hide
+            </button>
+          </div>
+          <div className="card overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-zinc-200 dark:border-zinc-800">
+                <tr>
+                  <th className="th w-10">#</th>
+                  <th className="th">Team</th>
+                  <th className="th text-center">Avg final record</th>
+                  <th className="th text-center">Avg finish</th>
+                  <th className="th text-right">Playoffs (top {playoffTeams})</th>
+                  <th className="th text-right">Finish 1st</th>
+                  <th className="th hidden text-center sm:table-cell">Best / worst</th>
+                </tr>
+              </thead>
+              <tbody>
+                {many.map((m, i) => (
+                  <tr key={m.rosterId} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800/60">
+                    <td className="td font-semibold text-zinc-500">{i + 1}</td>
+                    <td className="td font-medium">{name(m.rosterId)}</td>
+                    <td className="td text-center tabular-nums">
+                      {m.avgWins.toFixed(1)}-{m.avgLosses.toFixed(1)}
+                    </td>
+                    <td className="td text-center tabular-nums">{m.avgFinish.toFixed(1)}</td>
+                    <td className="td text-right">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="hidden h-2 w-20 overflow-hidden rounded-full bg-zinc-200 sm:inline-block dark:bg-zinc-800">
+                          <span className="block h-full bg-emerald-500" style={{ width: `${m.playoffPct}%` }} />
+                        </span>
+                        <span className="w-12 font-semibold tabular-nums">{m.playoffPct.toFixed(1)}%</span>
+                      </span>
+                    </td>
+                    <td className="td text-right tabular-nums">{m.firstPct.toFixed(1)}%</td>
+                    <td className="td hidden text-center tabular-nums text-zinc-500 sm:table-cell">
+                      {m.best} / {m.worst}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-xs text-zinc-500">
+            Each of the {SEASONS.toLocaleString()} seasons simulates every remaining game with the same win chances; the
+            table shows each team&apos;s averages and how often it made the playoffs or finished first.
+          </p>
+        </section>
+      )}
 
       {!ready && <div className="card p-6 text-sm text-zinc-500">Simulating…</div>}
       {ready && (
