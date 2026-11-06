@@ -26,7 +26,7 @@ export default async function DraftPage() {
       <div className="card overflow-x-auto p-2.5">
         <div className="grid min-w-[1350px] gap-[5px]" style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}>
           {Array.from({ length: n }, (_, i) => (
-            <div key={i} className="truncate px-1 pb-1.5 text-center text-[8.7px] font-semibold">
+            <div key={i} className="truncate px-1 pb-1.5 text-center text-[7.8px] font-semibold">
               {slotTeam.get(i + 1)?.teamName ?? `Slot ${i + 1}`}
             </div>
           ))}
@@ -36,14 +36,15 @@ export default async function DraftPage() {
               if (!p) return <div key={`${r}-${s}`} />;
               const pos = p.metadata.position;
               return (
-                <div key={`${r}-${s}`} className={`flex min-h-[52px] flex-col justify-center rounded-md p-[7px] text-[8.7px] leading-[1.43] ${POSITION_STYLES[pos] ?? "bg-zinc-100"}`}>
-                  <div className="truncate text-[7.2px] opacity-70">
+                <div key={`${r}-${s}`} className={`flex min-h-[52px] flex-col justify-center rounded-md p-[7px] text-[7.8px] leading-[1.43] ${POSITION_STYLES[pos] ?? "bg-zinc-100"}`}>
+                  <div className="truncate text-[6.5px] opacity-70">
                     {p.round}.{String(p.pick_no - (p.round - 1) * n).padStart(2, "0")} · {pos} · {p.metadata.team_abbr}
                   </div>
                   {/* Sleeper's font (Muli/Mulish), sized so the whole name fills the box */}
                   <FitText
                     text={`${p.metadata.first_name} ${p.metadata.last_name}`.trim()}
                     max={16}
+                    scale={0.9}
                     className="font-['Mulish','Muli',sans-serif] font-extrabold"
                   />
                 </div>
