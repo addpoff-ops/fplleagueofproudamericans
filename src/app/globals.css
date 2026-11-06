@@ -7,8 +7,16 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0c0c0e;
-    --foreground: #e8e8ea;
+    --background: #081a46;
+    --foreground: #e8ecf6;
+    /* Deep sapphire gradient behind every page */
+    --background-image: radial-gradient(120% 80% at 50% -10%, #1a3f9e 0%, transparent 60%),
+      linear-gradient(165deg, #0f2d78 0%, #0a2160 35%, #071746 70%, #040d2c 100%);
+    /* Dark surfaces (cards, rows, borders, header, inputs) tinted navy to sit on the blue */
+    --color-zinc-950: #050f2e;
+    --color-zinc-900: #0c1d4c;
+    --color-zinc-800: #1a2f68;
+    --color-zinc-700: #2b4385;
   }
 }
 
@@ -18,7 +26,10 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: var(--background-image, none);
+  background-attachment: fixed;
+  min-height: 100vh;
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
