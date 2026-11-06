@@ -127,8 +127,8 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool, pastTr
           </div>
         </div>
         <div className="flex h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-          <div className="bg-red-600 transition-all" style={{ width: `${pctA}%` }} />
-          <div className="bg-yellow-400 transition-all" style={{ width: `${100 - pctA}%` }} />
+          <div className="bg-[#4c1d95] transition-all" style={{ width: `${pctA}%` }} />
+          <div className="bg-black transition-all" style={{ width: `${100 - pctA}%` }} />
         </div>
         <div className="mt-1 flex justify-between text-xs text-zinc-500">
           <span>{teamName(0)} sends {scores[0].adjusted.toLocaleString()}</span>
