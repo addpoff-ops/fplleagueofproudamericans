@@ -125,7 +125,6 @@ export default async function PowerRankingsPage({ searchParams }: { searchParams
                 <span className={`h-2.5 w-2.5 rounded-sm ${SEGMENT[p]}`} /> {POSITION_LABEL[p]}
               </span>
             ))}
-            <span className="font-normal normal-case tracking-normal">· Numbers on the bars are each team&apos;s rank at that position</span>
           </div>
 
           {/* Wider than the normal page column on big screens, like the draft board */}
