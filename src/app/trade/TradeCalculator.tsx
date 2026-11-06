@@ -120,7 +120,7 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool, pastTr
           <div className="text-lg font-bold">
             {v.winner === null
               ? v.label
-              : `${v.label}: ${teamName(v.winner === "A" ? 0 : 1)} wins by ${v.pct}%`}
+              : `${v.label}: ${teamName(v.winner === "A" ? 0 : 1)} wins`}
           </div>
           <div className="text-xs text-zinc-500">
             Each extra player in a package counts for {Math.round(DEPTH_FACTOR * 100)}% of the one before it.
@@ -223,7 +223,7 @@ function PastTrades({
                 : two
                 ? v!.winner === null
                   ? `${v!.label}`
-                  : `${v!.label}: ${teamName(scored[v!.winner === "A" ? 0 : 1].rosterId)} won by ${v!.pct}%`
+                  : `${v!.label}: ${teamName(scored[v!.winner === "A" ? 0 : 1].rosterId)} won`
                 : `${teamName(scored.find((s) => s.score.adjusted === best)!.rosterId)} got the most value`;
             return (
               <div key={t.id} className="card p-4">
