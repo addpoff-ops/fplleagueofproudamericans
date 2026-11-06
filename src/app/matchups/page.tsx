@@ -347,7 +347,7 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
           </div>
           {form.length > 0 && (
             <section className="relative left-1/2 mt-6 w-[min(1372px,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4 dark:border-zinc-800/80 dark:bg-zinc-900/95">
-              <h2 className="text-lg font-bold">Projected Highest Against Recent Form</h2>
+              <h2 className="text-lg font-bold">Who is Underperforming Projections?</h2>
               <p className="mb-3 text-xs text-zinc-500">
                 This week&apos;s projection divided by each player&apos;s average over their last four games with at least 60
                 minutes played.
