@@ -202,7 +202,53 @@ async function formRows(
     if (projected <= 0) continue;
     rows.push({ id, player, pos, owner: ownedBy, projected, recent, multiplier: projected / recent });
   }
-  return rows.sort((a, b) => b.multiplier - a.multiplier).slice(0, 20);
+  return rows.sort((a, b) => b.multiplier - a.multiplier);
+}
+
+/** A top-20 table of owned players' projection against their recent form. */
+function FormTable({ title, rows }: { title: string; rows: FormRow[] }) {
+  return (
+    <section className="relative left-1/2 mt-6 w-[min(1372px,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4 dark:border-zinc-800/80 dark:bg-zinc-900/95">
+      <h2 className="text-lg font-bold">{title}</h2>
+      <p className="mb-3 text-xs text-zinc-500">
+        This week&apos;s projection divided by each player&apos;s average over their last four games with at least 60
+        minutes played.
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm tabular-nums">
+          <thead>
+            <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
+              <th className="py-1.5 pr-2 text-left font-semibold">#</th>
+              <th className="py-1.5 pr-2 text-left font-semibold">Player</th>
+              <th className="py-1.5 pr-2 text-left font-semibold">Pos</th>
+              <th className="hidden py-1.5 pr-2 text-left font-semibold sm:table-cell">Fantasy team</th>
+              <th className="py-1.5 pr-2 text-right font-semibold">Projected</th>
+              <th className="py-1.5 pr-2 text-right font-semibold"><span className="sm:hidden">Avg</span><span className="hidden sm:inline">4-game avg</span></th>
+              <th className="py-1.5 text-right font-semibold"><span className="sm:hidden">Mult</span><span className="hidden sm:inline">Multiplier</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((f, i) => (
+              <tr key={f.id} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800/80">
+                <td className="py-1.5 pr-2 text-zinc-500">{i + 1}</td>
+                <td className="py-1.5 pr-2">
+                  <span className="font-medium">{f.player.name}</span>{" "}
+                  <span className="text-[11px] text-zinc-500">{f.player.team ?? ""}</span>
+                </td>
+                <td className="py-1.5 pr-2">
+                  <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold ring-1 ${PILL[f.pos]}`}>{POSITION_LABEL[f.pos]}</span>
+                </td>
+                <td className="hidden py-1.5 pr-2 text-zinc-500 sm:table-cell">{f.owner}</td>
+                <td className="py-1.5 pr-2 text-right">{fmt(f.projected)}</td>
+                <td className="py-1.5 pr-2 text-right">{fmt(f.recent)}</td>
+                <td className="py-1.5 text-right font-bold">{f.multiplier.toFixed(2)}×</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 export default async function MatchupsPage({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
@@ -229,7 +275,9 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
     .filter((g): g is { home: Team; away: Team } => !!g.home && !!g.away)
     .map((g) => ({ home: teamSide(g.home, players, proj, estimateNotes), away: teamSide(g.away, players, proj, estimateNotes) }));
   const hasProjections = Object.keys(rawProj).length > 0;
-  const form = hasProjections ? await formRows(league.season, week, projStats, players, teams, league.scoring_settings) : [];
+  const allForm = hasProjections ? await formRows(league.season, week, projStats, players, teams, league.scoring_settings) : [];
+  const under = allForm.slice(0, 20); // highest multipliers
+  const over = allForm.slice(-20).reverse(); // lowest multipliers
 
   return (
     <>
@@ -345,48 +393,8 @@ export default async function MatchupsPage({ searchParams }: { searchParams: Pro
               );
             })}
           </div>
-          {form.length > 0 && (
-            <section className="relative left-1/2 mt-6 w-[min(1372px,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4 dark:border-zinc-800/80 dark:bg-zinc-900/95">
-              <h2 className="text-lg font-bold">Who is Underperforming Projections?</h2>
-              <p className="mb-3 text-xs text-zinc-500">
-                This week&apos;s projection divided by each player&apos;s average over their last four games with at least 60
-                minutes played.
-              </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm tabular-nums">
-                  <thead>
-                    <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500 dark:border-zinc-700">
-                      <th className="py-1.5 pr-2 text-left font-semibold">#</th>
-                      <th className="py-1.5 pr-2 text-left font-semibold">Player</th>
-                      <th className="py-1.5 pr-2 text-left font-semibold">Pos</th>
-                      <th className="hidden py-1.5 pr-2 text-left font-semibold sm:table-cell">Fantasy team</th>
-                      <th className="py-1.5 pr-2 text-right font-semibold">Projected</th>
-                      <th className="py-1.5 pr-2 text-right font-semibold"><span className="sm:hidden">Avg</span><span className="hidden sm:inline">4-game avg</span></th>
-                      <th className="py-1.5 text-right font-semibold"><span className="sm:hidden">Mult</span><span className="hidden sm:inline">Multiplier</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {form.map((f, i) => (
-                      <tr key={f.id} className="border-b border-zinc-100 last:border-0 dark:border-zinc-800/80">
-                        <td className="py-1.5 pr-2 text-zinc-500">{i + 1}</td>
-                        <td className="py-1.5 pr-2">
-                          <span className="font-medium">{f.player.name}</span>{" "}
-                          <span className="text-[11px] text-zinc-500">{f.player.team ?? ""}</span>
-                        </td>
-                        <td className="py-1.5 pr-2">
-                          <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-semibold ring-1 ${PILL[f.pos]}`}>{POSITION_LABEL[f.pos]}</span>
-                        </td>
-                        <td className="hidden py-1.5 pr-2 text-zinc-500 sm:table-cell">{f.owner}</td>
-                        <td className="py-1.5 pr-2 text-right">{fmt(f.projected)}</td>
-                        <td className="py-1.5 pr-2 text-right">{fmt(f.recent)}</td>
-                        <td className="py-1.5 text-right font-bold">{f.multiplier.toFixed(2)}×</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
+          {under.length > 0 && <FormTable title="Who is Underperforming Projections?" rows={under} />}
+          {over.length > 0 && <FormTable title="Who is Overperforming Projections?" rows={over} />}
           <p className="mt-3 text-xs text-zinc-500">
             Projected points use RotoWire&apos;s weekly projections for goals, assists, chances created, shots on target,
             dribbles completed, accurate crosses, tackles won, interceptions, aerials won, effective clearances,
