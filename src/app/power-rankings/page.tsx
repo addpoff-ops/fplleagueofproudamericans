@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { getLeagueData } from "@/lib/league";
-import { prisma } from "@/lib/db";
-import { getEntries } from "@/lib/rankings";
+import { consensusValues, type ConsensusValue } from "@/lib/rankings";
 import { getPlayers } from "@/lib/sleeper";
-import { POSITION_LABEL, SHEET_TIER_VALUES, type Pos, type RankedEntry, type Tier } from "@/lib/value";
+import { POSITION_LABEL, type Pos, type Tier } from "@/lib/value";
 import { Avatar, PageTitle } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -44,30 +43,28 @@ const ordinal = (n: number) => {
 /**
  * Every team ranked by the total value of all rostered players, using the
  * original spreadsheet values (no trade-calculator scaling or discounts).
- * Each player's tier comes from the official rankings; unranked players count 0.
+ * Each player's value is their average across every rankings list on the site;
+ * players no list ranks count 0.
  */
 export default async function PowerRankingsPage() {
-  const [{ teams }, entries, official, players] = await Promise.all([
+  const [{ teams }, { values, listCount }, players] = await Promise.all([
     getLeagueData(),
-    getEntries({ isOfficial: true }),
-    prisma.rankingSet.findFirst({ where: { isOfficial: true }, select: { name: true, slug: true } }),
+    consensusValues(),
     getPlayers(),
   ]);
-  const entryOf = new Map((entries ?? []).map((e) => [e.playerId, e]));
   const standing = new Map(teams.map((t, i) => [t.rosterId, i + 1]));
 
   const rows = teams
     .map((t) => {
       const byPos: Record<Pos, number> = { F: 0, M: 0, D: 0, GK: 0 };
-      const roster: Record<Pos, (RankedEntry & { pts: number })[]> = { F: [], M: [], D: [], GK: [] };
+      const roster: Record<Pos, (ConsensusValue & { playerId: string })[]> = { F: [], M: [], D: [], GK: [] };
       for (const id of t.players) {
-        const e = entryOf.get(id);
-        if (!e) continue;
-        const pts = SHEET_TIER_VALUES[e.pos][e.tier];
-        byPos[e.pos] += pts;
-        roster[e.pos].push({ ...e, pts });
+        const v = values.get(id);
+        if (!v) continue;
+        byPos[v.pos] += v.pts;
+        roster[v.pos].push({ ...v, playerId: id });
       }
-      for (const p of COLS) roster[p].sort((a, b) => a.rank - b.rank);
+      for (const p of COLS) roster[p].sort((a, b) => b.pts - a.pts);
       const total = COLS.reduce((s, p) => s + byPos[p], 0);
       return { team: t, byPos, roster, total };
     })
@@ -83,22 +80,17 @@ export default async function PowerRankingsPage() {
         title="Power Rankings"
         sub={
           <>
-            Teams ranked by total roster value using the original spreadsheet values (e.g. FWD S = 580, MID S = 600).
-            Tiers come from{" "}
-            {official ? (
-              <Link href={`/rankings/${official.slug}`} className="underline">
-                {official.name}
-              </Link>
-            ) : (
-              "the official rankings"
-            )}
-            . Click a team to see its players.
+            Teams ranked by total roster value. Each player&apos;s value is the average of their value across all{" "}
+            <Link href="/rankings" className="underline">
+              {listCount} rankings {listCount === 1 ? "list" : "lists"}
+            </Link>{" "}
+            on the site, using the original spreadsheet values (e.g. FWD S = 580, MID S = 600)            . Click a team to see its players.
           </>
         }
       />
 
-      {!entries ? (
-        <div className="card p-8 text-center text-sm text-zinc-500">No official rankings yet.</div>
+      {listCount === 0 ? (
+        <div className="card p-8 text-center text-sm text-zinc-500">No rankings lists yet.</div>
       ) : (
         <>
           {/* Legend */}
@@ -224,7 +216,7 @@ export default async function PowerRankingsPage() {
                               </span>
                               <span
                                 className={`flex w-10 shrink-0 items-center justify-center text-xs font-bold ${HEAT[e.tier]}`}
-                                title={`Tier ${e.tier}`}
+                                title={`Consensus tier ${e.tier} (average ${e.pts} across ${e.lists} ${e.lists === 1 ? "list" : "lists"})`}
                               >
                                 {e.tier}
                               </span>
@@ -240,8 +232,8 @@ export default async function PowerRankingsPage() {
             })}
           </div>
           <p className="mt-3 text-xs text-zinc-500">
-            In each team&apos;s player list: the number is the player&apos;s value; the coloured cell is their tier in the
-            official rankings (green = top tiers, red = bottom).
+            In each team&apos;s player list: the number is the player&apos;s average value across all lists; the coloured
+            cell is their consensus tier, the tier closest to that average (green = top tiers, red = bottom).
           </p>
         </>
       )}

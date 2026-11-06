@@ -84,7 +84,8 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool }: Prop
           {sets.map((s) => (
             <option key={s.slug} value={s.slug}>
               {s.isOfficial ? "★ " : ""}
-              {s.name}, by {s.author}
+              {s.name}
+              {s.author ? `, by ${s.author}` : ""}
             </option>
           ))}
         </select>

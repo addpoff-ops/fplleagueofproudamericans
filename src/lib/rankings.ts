@@ -2,7 +2,7 @@ import { prisma } from "./db";
 import { getLeagueData } from "./league";
 import { getLeague, getPlayers, getProjections, getSeasonStats, scorePoints, type Player } from "./sleeper";
 import { EPL_CLUBS } from "./config";
-import { POSITIONS, tierValue, type Pos, type RankedEntry, type Tier } from "./value";
+import { isPos, isTier, POSITIONS, SHEET_TIER_VALUES, TIERS, TRADE_MULTIPLIER, tierValue, type Pos, type RankedEntry, type Tier } from "./value";
 
 export async function listRankingSets() {
   const sets = await prisma.rankingSet.findMany({
@@ -95,4 +95,64 @@ export async function seedFromPoints(): Promise<SeedEntry[]> {
   const [pool, stats] = await Promise.all([playerPool(), getSeasonStats(league.season)]);
   const pts = new Map(pool.filter((p) => stats[p.id]).map((p) => [p.id, scorePoints(stats[p.id], league.scoring_settings)]));
   return seedFromOrder(pool.filter((p) => pts.has(p.id)).sort((a, b) => pts.get(b.id)! - pts.get(a.id)!));
+}
+
+export interface ConsensusValue {
+  pos: Pos; // official list's position, else the most common across lists
+  tier: Tier; // tier whose value is closest to the average
+  pts: number; // average original-sheet value across the lists that rank the player (rounded)
+  exact: number; // the same average, unrounded
+  lists: number; // how many lists rank the player
+}
+
+/**
+ * Consensus player values across every rankings list on the site, using the
+ * original spreadsheet values (SHEET_TIER_VALUES). A list that doesn't rank a
+ * player is left out of that player's average rather than counted as 0.
+ */
+export async function consensusValues() {
+  const sets = await prisma.rankingSet.findMany({
+    select: { isOfficial: true, entries: { select: { playerId: true, pos: true, tier: true } } },
+  });
+  const byPlayer = new Map<string, { pos: Pos; tier: Tier }[]>();
+  const officialPos = new Map<string, Pos>();
+  for (const s of sets)
+    for (const e of s.entries) {
+      if (!isPos(e.pos) || !isTier(e.tier)) continue;
+      byPlayer.set(e.playerId, [...(byPlayer.get(e.playerId) ?? []), { pos: e.pos, tier: e.tier }]);
+      if (s.isOfficial) officialPos.set(e.playerId, e.pos);
+    }
+
+  const values = new Map<string, ConsensusValue>();
+  for (const [id, rows] of byPlayer) {
+    const exact = rows.reduce((sum, r) => sum + SHEET_TIER_VALUES[r.pos][r.tier], 0) / rows.length;
+    const pts = Math.round(exact);
+    const counts = new Map<Pos, number>();
+    for (const r of rows) counts.set(r.pos, (counts.get(r.pos) ?? 0) + 1);
+    const pos = officialPos.get(id) ?? [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    const tier = TIERS.reduce((best, t) =>
+      Math.abs(SHEET_TIER_VALUES[pos][t] - pts) < Math.abs(SHEET_TIER_VALUES[pos][best] - pts) ? t : best,
+    );
+    values.set(id, { pos, tier, pts, exact, lists: rows.length });
+  }
+  return { values, listCount: sets.length };
+}
+
+/** Slug the trade calculator uses for "Average of all rankings". */
+export const AVERAGE_SLUG = "average";
+
+/** Consensus values as trade-calculator entries (trade values = average x TRADE_MULTIPLIER). */
+export async function averageEntries(): Promise<RankedEntry[]> {
+  const { values } = await consensusValues();
+  const list = [...values.entries()].map(([playerId, v]) => ({ playerId, ...v }));
+  const out: RankedEntry[] = [];
+  for (const pos of POSITIONS) {
+    list
+      .filter((v) => v.pos === pos)
+      .sort((a, b) => b.exact - a.exact)
+      .forEach((v, i) =>
+        out.push({ playerId: v.playerId, pos, rank: i + 1, tier: v.tier, value: Math.round(v.exact * TRADE_MULTIPLIER) }),
+      );
+  }
+  return out;
 }

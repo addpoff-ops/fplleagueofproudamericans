@@ -8,7 +8,7 @@ A league hub for the **FPL League of Proud Americans**
 | Page | What it does |
 | --- | --- |
 | `/` | Opens Power Rankings |
-| `/power-rankings` | All 12 teams ranked by total roster value using the original spreadsheet values (no trade-calculator scaling), with a FWD/MID/DEF/GK breakdown |
+| `/power-rankings` | All 12 teams ranked by total roster value: each player's value is averaged across every rankings list on the site (original spreadsheet values), with a FWD/MID/DEF/GK breakdown |
 | `/teams/[id]` | Each roster (starters, bench, IR), with ranks and values from the official rankings |
 | `/lineup-setter` | Connect a Sleeper account and switch on automatic lineup changes when team sheets drop |
 | `/draft` | The full draft board |
