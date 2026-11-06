@@ -2,7 +2,7 @@ import { prisma } from "./db";
 import { getLeagueData } from "./league";
 import { getLeague, getPlayers, getProjections, getSeasonStats, scorePoints, type Player } from "./sleeper";
 import { EPL_CLUBS } from "./config";
-import { isPos, isTier, POSITIONS, SHEET_TIER_VALUES, TIERS, TRADE_MULTIPLIER, tierValue, type Pos, type RankedEntry, type Tier } from "./value";
+import { isPos, isTier, POSITIONS, SHEET_TIER_VALUES, TIERS, toTradeValue, tierValue, type Pos, type RankedEntry, type Tier } from "./value";
 
 export async function listRankingSets() {
   const sets = await prisma.rankingSet.findMany({
@@ -164,7 +164,7 @@ export async function consensusValues() {
 /** Slug the trade calculator uses for "Average of all rankings". */
 export const AVERAGE_SLUG = "average";
 
-/** Consensus values as trade-calculator entries (trade values = average x TRADE_MULTIPLIER). */
+/** Consensus values as trade-calculator entries (trade value of the average sheet value). */
 export async function averageEntries(): Promise<RankedEntry[]> {
   const { values } = await consensusValues();
   const list = [...values.entries()].map(([playerId, v]) => ({ playerId, ...v }));
@@ -174,7 +174,7 @@ export async function averageEntries(): Promise<RankedEntry[]> {
       .filter((v) => v.pos === pos)
       .sort((a, b) => b.exact - a.exact)
       .forEach((v, i) =>
-        out.push({ playerId: v.playerId, pos, rank: i + 1, tier: v.tier, value: Math.round(v.exact * TRADE_MULTIPLIER) }),
+        out.push({ playerId: v.playerId, pos, rank: i + 1, tier: v.tier, value: toTradeValue(v.exact) }),
       );
   }
   return out;
@@ -183,10 +183,10 @@ export async function averageEntries(): Promise<RankedEntry[]> {
 /** Slug the trade calculator uses for the "Total Points" option. */
 export const POINTS_SLUG = "total-points";
 
-/** Total Points values as trade-calculator entries (trade values = sheet value x TRADE_MULTIPLIER). */
+/** Total Points values as trade-calculator entries (trade value of each sheet value). */
 export async function pointsEntries(): Promise<RankedEntry[]> {
   const values = await pointsValues();
   return [...values.entries()]
-    .map(([playerId, v]) => ({ playerId, pos: v.pos, rank: v.rank!, tier: v.tier, value: v.pts * TRADE_MULTIPLIER }))
+    .map(([playerId, v]) => ({ playerId, pos: v.pos, rank: v.rank!, tier: v.tier, value: toTradeValue(v.pts) }))
     .sort((a, b) => POSITIONS.indexOf(a.pos) - POSITIONS.indexOf(b.pos) || a.rank - b.rank);
 }

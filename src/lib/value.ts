@@ -3,7 +3,7 @@
 // Players are valued by position + tier using the original "Ranking
 // Multiplier" values from the FWD/MID/DEF/GK (A) sheets of
 // FPL_26-27_Analysis_Sheet.xlsx. Power Rankings uses them as-is; trade values
-// (trade calculator, Player Rankings, team pages) are 3x those.
+// (trade calculator, Player Rankings, team pages) are 3x those, minus 400.
 
 export const POSITIONS = ["F", "M", "D", "GK"] as const;
 export type Pos = (typeof POSITIONS)[number];
@@ -24,15 +24,20 @@ export const SHEET_TIER_VALUES: Record<Pos, Record<Tier, number>> = {
   GK: { S: 325, A: 300, B: 265, C: 242, D: 215, E: 200, F: 200, Z: 200 },
 };
 
-/** Every trade value is the sheet value times this. */
+/** Every trade value is the sheet value times this... */
 export const TRADE_MULTIPLIER = 3;
+/** ...minus this. */
+export const TRADE_OFFSET = 400;
+
+/** Sheet value → trade value. */
+export const toTradeValue = (sheetValue: number) => Math.round(sheetValue * TRADE_MULTIPLIER - TRADE_OFFSET);
 
 /** Trade values (trade calculator, Player Rankings, team pages). Power
  *  Rankings uses SHEET_TIER_VALUES directly, unmultiplied. */
 export const TIER_VALUES = Object.fromEntries(
   Object.entries(SHEET_TIER_VALUES).map(([pos, tiers]) => [
     pos,
-    Object.fromEntries(Object.entries(tiers).map(([t, v]) => [t, v * TRADE_MULTIPLIER])),
+    Object.fromEntries(Object.entries(tiers).map(([t, v]) => [t, toTradeValue(v)])),
   ]),
 ) as Record<Pos, Record<Tier, number>>;
 

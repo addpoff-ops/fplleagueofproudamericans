@@ -102,7 +102,7 @@ position and tier using the original values from the FWD/MID/DEF/GK (A) sheets:
 
 (The sheet has no GK F tier, so GK F uses 200.) Power Rankings uses these
 values as-is. Trade values (trade calculator, Player Rankings, team pages) are
-these values ×3 (`TRADE_MULTIPLIER`).
+these values ×3, minus 400 (`TRADE_MULTIPLIER`, `TRADE_OFFSET`).
 
 In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
 best-first and weights the i-th player by `0.5^i` (each extra player counts
