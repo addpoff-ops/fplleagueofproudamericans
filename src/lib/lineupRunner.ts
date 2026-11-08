@@ -2,7 +2,7 @@ import type { LineupSetter } from "@prisma/client";
 import { prisma } from "./db";
 import { decrypt } from "./secure";
 import { getMatchupLegs, SleeperAuthError, updateMatchupLeg, updateRosterMetadata } from "./sleeperAuth";
-import { lineupSlots, loadContext, loadPlannerData, planWindow, PRIORITY_LABEL, type Plan } from "./lineup";
+import { lineupProblems, lineupSlots, loadContext, loadPlannerData, planWindow, PRIORITY_LABEL, type Plan } from "./lineup";
 
 type Ctx = Awaited<ReturnType<typeof loadContext>>;
 type Data = Awaited<ReturnType<typeof loadPlannerData>>;
@@ -101,18 +101,66 @@ export async function runForSetter(
       }
       if (save) {
         // Sleeper checks the lineup against the week's formation, so set the
-        // formation first; if the lineup then fails to save, put it back.
+        // formation first, then the lineup; if the lineup fails to save, put the
+        // formation back. Afterwards, read both back and fix anything that's off.
+        const slots = lineupSlots(ctx.league.roster_positions);
+        const pos = (id: string) => data.players[id]?.pos ?? "";
+        const who = (id: string) => name(data, id);
+        // Everyone who should be starting: the original XI minus the benched, plus their replacements.
+        const outs = new Set(plan.swaps.map((s) => s.out));
+        const expected = [
+          ...starters.filter((id) => id && id !== "0" && !outs.has(id)),
+          ...plan.swaps.map((s) => s.in),
+        ];
+        const planned = lineupProblems(plan.newStarters, slots, plan.formationAfter, expected, pos, who);
+        if (planned.length) throw new Error(`Didn't save: the planned lineup has problems (${planned.join("; ")}).`);
+
         const changeFormation = plan.formationAfter !== formation;
         const changeStarters = plan.newStarters.some((s, i) => s !== starters[i]);
-        if (changeFormation) await saveFormation(token, leagueId, setter.rosterId, ctx.week, plan.formationAfter);
-        try {
+        const apply = async () => {
+          if (changeFormation) await saveFormation(token, leagueId, setter.rosterId, ctx.week, plan.formationAfter);
           if (changeStarters) {
             const saved = await updateMatchupLeg(token, leagueId, setter.rosterId, ctx.week, plan.newStarters);
             const ok = saved?.starters && plan.newStarters.every((s, i) => saved.starters![i] === s);
             if (!ok) throw new Error("Sleeper didn't confirm the new lineup.");
           }
+        };
+        // Read the lineup and formation back from Sleeper and check everything is in place.
+        const verify = async () => {
+          const leg2 = (await getMatchupLegs(token, leagueId, ctx.week)).find((l) => l.roster_id === setter.rosterId);
+          const saved = leg2?.starters ?? [];
+          const savedFormation = formationsOf(await rosterMetadata(leagueId, setter.rosterId))[String(ctx.week)] ?? "";
+          const problems = lineupProblems(saved, slots, savedFormation, expected, pos, who);
+          if (savedFormation !== plan.formationAfter) problems.push(`the saved formation is ${savedFormation || "missing"}, not ${plan.formationAfter}`);
+          if (problems.length === 0 && saved.some((s, i) => s !== plan.newStarters[i])) problems.push("the saved order isn't the planned one");
+          return problems;
+        };
+        // Sleeper can take a few seconds to show a save, so re-check briefly before acting on a mismatch.
+        const verifySettled = async () => {
+          let problems = await verify();
+          for (let tries = 0; problems.length && tries < 2; tries++) {
+            await new Promise((r) => setTimeout(r, 3000));
+            problems = await verify();
+          }
+          return problems;
+        };
+        let applied = false;
+        try {
+          await apply();
+          applied = true;
+          let problems = await verifySettled();
+          if (problems.length) {
+            // Go back in once and set the formation and lineup again.
+            await saveFormation(token, leagueId, setter.rosterId, ctx.week, plan.formationAfter);
+            const saved = await updateMatchupLeg(token, leagueId, setter.rosterId, ctx.week, plan.newStarters);
+            if (!saved?.starters) throw new Error("Sleeper didn't confirm the corrected lineup.");
+            problems = await verifySettled();
+          }
+          if (problems.length) throw new Error(`Saved, but the lineup on Sleeper still isn't right: ${problems.join("; ")}. Please check it in the Sleeper app.`);
         } catch (e) {
-          if (changeFormation && formation) await saveFormation(token, leagueId, setter.rosterId, ctx.week, formation).catch(() => {});
+          // Only undo the formation if the lineup itself never saved (else the two would disagree).
+          if (changeFormation && formation && !applied)
+            await saveFormation(token, leagueId, setter.rosterId, ctx.week, formation).catch(() => {});
           throw e;
         }
         starters = plan.newStarters;

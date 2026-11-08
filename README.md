@@ -54,7 +54,10 @@ and the new formation is saved on Sleeper
 Sleeper accepts a lineup when each starter is in a spot their position can fill
 (F, M×3, D×3, GK, F/M, M/D, F/M/D) and the position counts match the week's
 formation; the app then shows players grouped by that formation. A lineup that
-doesn't match its saved formation is repaired the same way. Each change appears as a notification on the page.
+doesn't match its saved formation is repaired the same way. After saving, the
+lineup and formation are read back from Sleeper and checked (everyone else
+still starting, each in an eligible spot, counts matching the formation); if
+anything is off it's saved again once, and otherwise reported as an error. Each change appears as a notification on the page.
 
 **How it works:** team sheets and kickoff times come from Sleeper's public
 `/scores` feed. Lineups are read and saved through Sleeper's *private* GraphQL

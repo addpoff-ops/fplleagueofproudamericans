@@ -282,6 +282,33 @@ export function assignSlots(
   return assignSlotsFewestMoves(slots, current, ids, pos, locked);
 }
 
+/**
+ * Everything wrong with a saved lineup, as Sleeper would judge it (empty = fine):
+ * every expected player must be starting, each in a spot their position can fill,
+ * and the forward/midfielder/defender/keeper counts must match the formation, so
+ * Sleeper shows forwards, then midfielders, then defenders, then the goalkeeper.
+ */
+export function lineupProblems(
+  starters: string[],
+  slots: string[],
+  formation: string,
+  expected: string[],
+  pos: (id: string) => string,
+  name: (id: string) => string = (id) => id,
+) {
+  const problems: string[] = [];
+  const ids = starters.filter((s) => s && s !== "0");
+  for (const id of expected) if (!ids.includes(id)) problems.push(`${name(id)} is missing from the lineup`);
+  for (const id of ids) if (!expected.includes(id)) problems.push(`${name(id)} shouldn't be in the lineup`);
+  starters.forEach((id, k) => {
+    if (id && id !== "0" && !(SLOT_ELIGIBLE[slots[k]] ?? []).includes(pos(id)))
+      problems.push(`${name(id)} is in a spot their position can't fill`);
+  });
+  if (formationOf(ids, pos) !== formation) problems.push(`the players make a ${formationOf(ids, pos)}, not the saved ${formation}`);
+  if (!followsFormation(ids, pos)) problems.push(`${formationOf(ids, pos)} isn't a legal formation`);
+  return problems;
+}
+
 export function planWindow(i: PlanInput): Plan {
   const now = i.now ?? Date.now();
   const gameOfClub = new Map<string, Game>();

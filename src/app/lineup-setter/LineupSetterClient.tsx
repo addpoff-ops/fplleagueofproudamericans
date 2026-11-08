@@ -63,6 +63,9 @@ export default function LineupSetterClient({ setter, runs, priorities, scheduler
               goalkeeper, 3–5 defenders, 3–5 midfielders and 1–3 forwards (goalkeepers are only replaced by goalkeepers). The
               formation changes to match, and the new formation is saved on Sleeper so everyone shows in
               their own position. A lineup that doesn&apos;t match its saved formation is fixed too.
+              After every change, the lineup and formation are read back from Sleeper to confirm everyone else is still
+              starting, in their own position (forwards, midfielders, defenders, goalkeeper); anything off is fixed
+              straight away, or you get a notice.
             </li>
             <li>Every change shows up here as a notification.</li>
           </ol>
