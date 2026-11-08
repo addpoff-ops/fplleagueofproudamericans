@@ -173,7 +173,7 @@ const followsFormation = (ids: string[], pos: (id: string) => string) => {
  * their current slot; everyone else moves as little as possible.
  * Returns null if no valid arrangement exists.
  */
-export function assignSlots(
+function assignSlotsFewestMoves(
   slots: string[],
   current: string[], // current slot-ordered starters ("0" = empty)
   ids: string[], // the starters to place
@@ -219,6 +219,67 @@ export function assignSlots(
   };
   dfs(0, 0);
   return best ? (best as { arr: string[] }).arr : null;
+}
+
+/**
+ * Put the starters into lineup slots so every player sits in a slot their
+ * position is eligible for, without reshuffling anyone else as Sleeper shows the
+ * lineup (each line, e.g. the midfield, is listed in slot order). Within each
+ * position the players keep their current order; a replacement of the same
+ * position takes the place of the player it replaces, and one of a different
+ * position joins the end of its own line. Locked players (their game has kicked
+ * off) keep their slot. Among arrangements that do this, the one that moves the
+ * fewest players wins; if none does (because of locked players), fall back to
+ * the fewest moves overall. Returns null if no valid arrangement exists.
+ */
+export function assignSlots(
+  slots: string[],
+  current: string[], // current slot-ordered starters ("0" = empty)
+  ids: string[], // the starters to place
+  pos: (id: string) => string,
+  locked: (id: string) => boolean = () => false,
+  replaces: Map<string, string> = new Map(), // incoming player -> player they replace
+): string[] | null {
+  if (ids.length > slots.length) return null;
+  // Each player's place in the order: their current slot, or (for a replacement)
+  // the slot of the same-position player they replace, else after everyone else.
+  const orderKey = (id: string) => {
+    const at = current.indexOf(id);
+    if (at >= 0) return at;
+    const out = replaces.get(id);
+    const outAt = out ? current.indexOf(out) : -1;
+    return outAt >= 0 && pos(out!) === pos(id) ? outAt : slots.length + ids.indexOf(id);
+  };
+  const groups: Record<string, string[]> = {};
+  for (const id of ids) (groups[pos(id)] ??= []).push(id);
+  for (const g of Object.values(groups)) g.sort((a, b) => orderKey(a) - orderKey(b));
+
+  let best: { arr: string[]; moves: number } | null = null;
+  const pattern: string[] = [];
+  const have: Record<string, number> = {};
+  const empties = slots.length - ids.length;
+  const choose = (k: number, emptyUsed: number) => {
+    if (k === slots.length) {
+      if (Object.keys(groups).some((p) => (have[p] ?? 0) !== groups[p].length)) return;
+      const next: Record<string, number> = {};
+      const arr = pattern.map((p) => (p ? groups[p][(next[p] = (next[p] ?? -1) + 1)] : "0"));
+      // Locked players must stay exactly where they are.
+      if (current.some((id, j) => id && id !== "0" && ids.includes(id) && locked(id) && arr[j] !== id)) return;
+      const moves = arr.filter((id, j) => id !== current[j]).length;
+      if (!best || moves < best.moves) best = { arr, moves };
+      return;
+    }
+    for (const p of [...(SLOT_ELIGIBLE[slots[k]] ?? []), ...(emptyUsed < empties ? [""] : [])]) {
+      if (p && (have[p] ?? 0) >= (groups[p]?.length ?? 0)) continue;
+      pattern[k] = p;
+      if (p) have[p] = (have[p] ?? 0) + 1;
+      choose(k + 1, emptyUsed + (p ? 0 : 1));
+      if (p) have[p]--;
+    }
+  };
+  choose(0, 0);
+  if (best) return (best as { arr: string[] }).arr;
+  return assignSlotsFewestMoves(slots, current, ids, pos, locked);
 }
 
 export function planWindow(i: PlanInput): Plan {
@@ -304,7 +365,8 @@ export function planWindow(i: PlanInput): Plan {
     followsFormation(lineup, pos) &&
     (!inEligibleSpots || formationOf(lineup, pos) !== formationBefore);
   const newStarters =
-    chosen.length || (repaired && !inEligibleSpots) ? (assignSlots(i.slots, original, lineup, pos, locked) ?? original) : original;
+    chosen.length || (repaired && !inEligibleSpots) ? (assignSlots(i.slots, original, lineup, pos, locked, new Map(chosen.map((c) => [c.in, c.out]))) ?? original)
+      : original;
   const swaps: Swap[] = chosen.map((c) => ({ ...c, slot: i.slots[newStarters.indexOf(c.in)] ?? "" }));
   return {
     windowStart: i.window.start,
