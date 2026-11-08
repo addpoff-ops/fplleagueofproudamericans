@@ -154,20 +154,69 @@ export default function RankingBoard({ set, initialSections, pool, owners }: Pro
       .slice(0, 8);
   }, [addQuery, pool, ranked, tab]);
 
+  const [saving, setSaving] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState(set.updatedAt);
+
+  /** Save, then read the list back from the server and confirm it matches what was sent. */
   async function save() {
-    if (!editKey) return;
+    if (!editKey || saving) return;
+    const sent = sections;
+    setSaving(true);
     setStatus("Saving…");
-    const res = await fetch(`/api/rankings/${set.slug}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json", "x-edit-key": editKey },
-      body: JSON.stringify({ sections }),
-    });
-    if (res.ok) {
-      setSaved(sections);
+    try {
+      const res = await fetch(`/api/rankings/${set.slug}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json", "x-edit-key": editKey },
+        body: JSON.stringify({ sections: sent }),
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        const msg = ((await res.json().catch(() => null)) as { error?: string } | null)?.error ?? `Save failed (${res.status})`;
+        setStatus(`Not saved: ${msg}`);
+        return;
+      }
+      const check = await fetch(`/api/rankings/${set.slug}`, { cache: "no-store" });
+      const back = (await check.json()) as { updatedAt?: string; entries?: { playerId: string; pos: Pos; tier: Tier }[] };
+      const stored = Object.fromEntries(POSITIONS.map((p) => [p, [] as Sections[Pos]])) as Sections;
+      for (const e of back.entries ?? []) stored[e.pos]?.push({ playerId: e.playerId, tier: e.tier });
+      // The server drops a player listed twice, so compare against the de-duplicated list.
+      const seen = new Set<string>();
+      const expected = Object.fromEntries(
+        POSITIONS.map((p) => [p, sent[p].filter((e) => !seen.has(e.playerId) && seen.add(e.playerId)).map(({ playerId, tier }) => ({ playerId, tier }))]),
+      ) as Sections;
+      if (JSON.stringify(stored) !== JSON.stringify(expected)) {
+        setStatus("Saved, but the server's copy doesn't match. Reload the page to check before editing more.");
+        return;
+      }
+      setSaved(sent);
+      if (back.updatedAt) setUpdatedAt(back.updatedAt);
       setStatus("Saved ✓");
-      setTimeout(() => setStatus(null), 2000);
-    } else setStatus((await res.json()).error ?? "Save failed");
+      setTimeout(() => setStatus((st) => (st === "Saved ✓" ? null : st)), 4000);
+      router.refresh();
+    } catch {
+      setStatus("Not saved: couldn't reach the site. Check your connection and try again.");
+    } finally {
+      setSaving(false);
+    }
   }
+
+  // Warn before leaving with unsaved changes through the site's own links too
+  // (the browser's own prompt only covers reloads and closing the tab).
+  useEffect(() => {
+    if (!dirty) return;
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a || a.target === "_blank" || e.metaKey || e.ctrlKey) return;
+      const url = new URL(a.href, window.location.href);
+      if (url.pathname === window.location.pathname) return;
+      if (!confirm("You have unsaved ranking changes. Leave without saving?")) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [dirty]);
 
   async function remove() {
     if (!editKey || !confirm(`Delete “${set.name}” permanently?`)) return;
@@ -213,7 +262,7 @@ export default function RankingBoard({ set, initialSections, pool, owners }: Pro
             <h1 className="text-2xl font-bold tracking-tight">{set.name}</h1>
           </div>
           <p className="mt-1 text-sm text-zinc-500">
-            by {set.author} · {total} players · updated {new Date(set.updatedAt).toLocaleDateString()}
+            by {set.author} · {total} players · updated {new Date(updatedAt).toLocaleString([], { dateStyle: "short", timeStyle: "short" })}
           </p>
           {set.description && <p className="mt-2 max-w-2xl text-sm">{set.description}</p>}
         </div>
@@ -221,7 +270,7 @@ export default function RankingBoard({ set, initialSections, pool, owners }: Pro
           {status && <span className="text-sm text-zinc-500">{status}</span>}
           {editing ? (
             <>
-              <button onClick={save} disabled={!dirty} className="btn-primary">Save changes</button>
+              <button onClick={save} disabled={!dirty || saving} className="btn-primary">Save changes</button>
               <button onClick={() => setSections(saved)} disabled={!dirty} className="btn-ghost">Discard</button>
               <button onClick={remove} className="btn-ghost text-rose-600">Delete</button>
             </>
@@ -388,6 +437,17 @@ export default function RankingBoard({ set, initialSections, pool, owners }: Pro
         ref={dragImage}
         className="pointer-events-none fixed -left-[9999px] top-0 rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-lg"
       />
+
+      {/* Always-visible save bar while there are unsaved changes (long lists scroll the top buttons away) */}
+      {editing && (dirty || saving) && (
+        <div className="fixed inset-x-0 bottom-20 z-40 flex justify-center px-4">
+          <div className="flex items-center gap-3 rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 shadow-xl dark:border-amber-700/60 dark:bg-amber-950 dark:text-amber-100">
+            <span className="font-medium">{saving ? "Saving…" : "Unsaved changes"}</span>
+            <button onClick={save} disabled={saving} className="btn-primary px-3 py-1 text-sm">Save changes</button>
+            <button onClick={() => setSections(saved)} disabled={saving} className="btn-ghost px-3 py-1 text-sm">Discard</button>
+          </div>
+        </div>
+      )}
 
       {/* Live status while dragging, and a confirmation after each move */}
       {(dragFrom !== null || notice) && (
