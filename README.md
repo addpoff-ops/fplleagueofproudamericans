@@ -116,10 +116,12 @@ position and tier using the original values from the FWD/MID/DEF/GK (A) sheets:
 values as-is. Trade values (trade calculator, Player Rankings, team pages) are
 these values ×3, minus 400 (`TRADE_MULTIPLIER`, `TRADE_OFFSET`).
 
-In the trade calculator, **Raw** is the plain sum. **Adjusted** sorts each side
-best-first: the best player counts 100%, the 2nd 60%, the 3rd 30%, and each
-one after that half the one before (`packageWeight`), so a pile of depth pieces
-doesn't automatically beat one star. Under a 10% advantage is a fair trade; 10–20% is a Slight Win, 20–40% a Clear Win, and 40%+ a Robbery.
+In the trade calculator, each side's value is its players' values added up.
+In an uneven trade (2-for-1, 3-for-1, 3-for-2, ...), the team sending fewer
+players gets a **Waiver add** for each player it's short, until both sides
+have the same number of values. A waiver add is worth the average Z-tier trade
+value of a forward, midfielder and defender, (140 + 200 + 185) / 3 = 175
+(`WAIVER_ADD_VALUE`). Under a 10% advantage is a fair trade; 10–20% is a Slight Win, 20–40% a Clear Win, and 40%+ a Robbery.
 
 The official list comes from `data/official-rankings-2026-27.json` (built from
 the (A) sheets, with names matched to Sleeper IDs). Sleeper's record for James

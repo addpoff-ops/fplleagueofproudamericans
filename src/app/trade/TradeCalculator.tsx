@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { POSITION_LABEL, scoreSide, verdict, type RankedEntry } from "@/lib/value";
+import { POSITION_LABEL, scoreSide, verdict, WAIVER_ADD_VALUE, type RankedEntry, type TradeSide } from "@/lib/value";
 import { POSITION_STYLES } from "@/lib/positions";
 import type { SlimPlayer } from "../rankings/[slug]/RankingBoard";
 import type { PastTrade } from "@/lib/trades";
@@ -46,7 +46,7 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool, pastTr
   }, [slug]);
 
   const valueOf = (id: string) => ranks?.get(id)?.value ?? 0;
-  const scores = sides.map((s) => scoreSide(s.players.map(valueOf)));
+  const scores = sides.map((s, i) => scoreSide(s.players.map(valueOf), sides[1 - i].players.length));
   // Side A *sends* its players to B, so whoever *receives* more value comes out ahead.
   const v = verdict(scores[1].adjusted, scores[0].adjusted); // "A" here = side A receives more
   const teamName = (i: 0 | 1) => teams.find((t) => t.rosterId === sides[i].rosterId)?.name ?? `Side ${"AB"[i]}`;
@@ -62,15 +62,21 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool, pastTr
   const suggestions = useMemo(() => {
     if (!ranks || v.winner === null) return null;
     const short = (v.winner === "A" ? 0 : 1) as 0 | 1; // the side getting the better deal must send more
-    const target = scores[short === 0 ? 1 : 0].adjusted;
+    const other = sides[short === 0 ? 1 : 0].players.map(valueOf);
     const roster = teams.find((t) => t.rosterId === sides[short].rosterId)?.players;
     if (!roster) return null;
     const inTrade = new Set([...sides[0].players, ...sides[1].players]);
     const current = sides[short].players.map(valueOf);
     const opts = roster
       .filter((id) => !inTrade.has(id) && valueOf(id) > 0)
-      .map((id) => ({ id, total: scoreSide([...current, valueOf(id)]).adjusted }))
-      .sort((a, b) => Math.abs(a.total - target) - Math.abs(b.total - target))
+      // Adding a player changes both sides' waiver adds, so re-score both.
+      .map((id) => ({
+        id,
+        gap: Math.abs(
+          scoreSide([...current, valueOf(id)], other.length).adjusted - scoreSide(other, current.length + 1).adjusted,
+        ),
+      }))
+      .sort((a, b) => a.gap - b.gap)
       .slice(0, 4);
     return { short, opts };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,7 +129,8 @@ export default function TradeCalculator({ sets, initialSlug, teams, pool, pastTr
               : `${v.label}: ${teamName(v.winner === "A" ? 0 : 1)} wins`}
           </div>
           <div className="text-xs text-zinc-500">
-            In a package, the 2nd player counts 60%, the 3rd 30%, and each one after that half the one before.
+            Uneven trades: the team sending fewer players gets a Waiver add ({WAIVER_ADD_VALUE}, the average Z-tier FWD,
+            MID and DEF value) for each player short, until both sides have the same number.
           </div>
         </div>
         <div className="flex h-3 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
@@ -205,7 +212,9 @@ function PastTrades({
       ) : (
         <div className="grid gap-3">
           {trades.map((t) => {
-            const scored = t.sides.map((s) => ({ ...s, score: scoreSide(s.receives.map(valueOf)) }));
+            // Pad every side up to the most players any side received, with waiver adds.
+            const most = Math.max(...t.sides.map((s) => s.receives.length));
+            const scored = t.sides.map((s) => ({ ...s, score: scoreSide(s.receives.map(valueOf), most) }));
             // A side that got no players (only FAAB/picks) can't be scored, since those aren't valued.
             const unscorable = scored.some((s) => s.receives.length === 0);
             const two = scored.length === 2 && !unscorable;
@@ -265,12 +274,10 @@ function PastTrades({
                               </li>
                             );
                           })}
+                          {ranks && s.score.waiverAdds > 0 && <WaiverAddRow side={s.score} />}
                           {s.faabIn > 0 && <li className="text-xs text-zinc-500">+ ${s.faabIn} FAAB</li>}
                           {s.receives.length === 0 && s.faabIn === 0 && <li className="text-xs text-zinc-500">Nothing</li>}
                         </ul>
-                        {ranks && s.receives.length > 1 && (
-                          <div className="mt-2 text-xs text-zinc-500">Raw total {s.score.raw.toLocaleString()}</div>
-                        )}
                       </div>
                     );
                   })}
@@ -294,7 +301,7 @@ function SidePanel(props: {
   valueOf: (id: string) => number;
   ranks: Map<string, RankedEntry> | null;
   exclude: Set<string>;
-  score: { raw: number; adjusted: number };
+  score: TradeSide;
   onChange: (s: Partial<SideState>) => void;
 }) {
   const { side, teams, pool, byId, valueOf, ranks, exclude, score, onChange } = props;
@@ -345,6 +352,9 @@ function SidePanel(props: {
             </li>
           );
         })}
+        {score.waiverAdds > 0 && (
+          <WaiverAddRow side={score} className="rounded-lg border border-dashed border-zinc-300 px-2 py-1.5 text-sm dark:border-zinc-700" />
+        )}
         {side.players.length === 0 && <li className="py-4 text-center text-sm text-zinc-400">No players added</li>}
       </ul>
 
@@ -369,10 +379,26 @@ function SidePanel(props: {
       </div>
 
       <div className="mt-3 flex justify-between border-t border-zinc-200 pt-3 text-sm dark:border-zinc-800">
-        <span className="text-zinc-500">Raw total {score.raw.toLocaleString()}</span>
-        <span className="font-semibold">Adjusted {score.adjusted.toLocaleString()}</span>
+        <span className="text-zinc-500">
+          Players {score.raw.toLocaleString()}
+          {score.waiverAdds > 0 && ` + waiver ${score.waiver.toLocaleString()}`}
+        </span>
+        <span className="font-semibold">Total {score.adjusted.toLocaleString()}</span>
       </div>
     </div>
+  );
+}
+
+/** The waiver adds a side is credited with in an uneven trade. */
+function WaiverAddRow({ side, className = "" }: { side: TradeSide; className?: string }) {
+  return (
+    <li className={`flex items-center gap-2 text-zinc-600 dark:text-zinc-300 ${className}`}>
+      <span className="inline-block w-8 rounded bg-zinc-200 px-1 py-0.5 text-center text-[11px] font-bold text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200">
+        +{side.waiverAdds}
+      </span>
+      <span>Waiver add{side.waiverAdds > 1 ? `s (${side.waiverAdds} × ${WAIVER_ADD_VALUE})` : ""}</span>
+      <span className="ml-auto text-xs tabular-nums text-zinc-500">{side.waiver.toLocaleString()}</span>
+    </li>
   );
 }
 

@@ -50,31 +50,30 @@ export function tierValue(pos: string | null | undefined, tier: string | null | 
   return TIER_VALUES[pos][tier];
 }
 
-/** The 2nd-best asset in a package counts for this fraction of its value... */
-export const SECOND_PLAYER_WEIGHT = 0.6;
-/** ...and each asset after that counts for this fraction of the previous weight. */
-export const LATER_PLAYER_FACTOR = 0.5;
-
-/** Weight of the i-th best asset (0-based): 100%, 60%, 30%, 15%, ... */
-export const packageWeight = (i: number) => (i === 0 ? 1 : SECOND_PLAYER_WEIGHT * LATER_PLAYER_FACTOR ** (i - 1));
+/**
+ * A "Waiver add": what a free roster spot is worth, the average Z-tier trade
+ * value of a forward, midfielder and defender ((140 + 200 + 185) / 3 = 175).
+ */
+export const WAIVER_ADD_VALUE = Math.round((TIER_VALUES.F.Z + TIER_VALUES.M.Z + TIER_VALUES.D.Z) / 3);
 
 export interface TradeSide {
-  raw: number;
-  adjusted: number;
+  raw: number; // the players' values added up
+  waiverAdds: number; // waiver adds credited to this side
+  waiver: number; // their total value
+  adjusted: number; // raw + waiver: the side's value in the trade
 }
 
 /**
- * Raw = plain sum. Adjusted = sorted best-first and weighted by packageWeight:
- * the best player counts 100%, the 2nd 60%, the 3rd 30%, then each one half the
- * one before. So a pile of depth pieces doesn't automatically beat one star
- * (you only have so many starting slots).
+ * A side's value in a trade: its players' values added up, plus a Waiver add
+ * for each player it's short of the other side, so both sides count the same
+ * number of values (2-for-1 → the 1-player side gets one waiver add, 3-for-1 →
+ * two, 3-for-2 → one). Only when both sides have at least one player.
  */
-export function scoreSide(values: number[]): TradeSide {
-  const sorted = [...values].sort((a, b) => b - a);
-  return {
-    raw: sorted.reduce((s, v) => s + v, 0),
-    adjusted: Math.round(sorted.reduce((s, v, i) => s + v * packageWeight(i), 0)),
-  };
+export function scoreSide(values: number[], otherCount: number): TradeSide {
+  const raw = values.reduce((s, v) => s + v, 0);
+  const waiverAdds = values.length > 0 && otherCount > 0 ? Math.max(0, otherCount - values.length) : 0;
+  const waiver = waiverAdds * WAIVER_ADD_VALUE;
+  return { raw, waiverAdds, waiver, adjusted: raw + waiver };
 }
 
 /**
