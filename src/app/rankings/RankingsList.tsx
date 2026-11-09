@@ -71,7 +71,7 @@ export default function RankingsList({ sets }: { sets: RankingSetSummary[] }) {
       <div className="grid gap-3 sm:grid-cols-2">
         {sets.map((s) => (
           <div key={s.slug} className="card relative p-4 hover:border-emerald-500">
-            <Link href={`/rankings/${s.slug}`} className="block">
+            <Link href={`/rankings/${s.slug}`} prefetch={false} className="block">
               <div className="flex items-center gap-2 pr-16">
                 <span className="font-semibold">{s.name}</span>
               </div>

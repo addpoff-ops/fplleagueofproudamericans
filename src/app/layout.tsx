@@ -55,8 +55,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span className="whitespace-nowrap">Proud Americans FPL</span>
             </Link>
             <nav className="grid w-full grid-cols-3 gap-1.5 font-['Times_New_Roman',Times,serif] text-[14px] font-bold sm:grid-cols-4 sm:text-[15px] lg:grid-cols-7 lg:text-[14px] xl:flex xl:w-auto xl:min-w-0 xl:flex-1 xl:items-center xl:gap-0.5 xl:overflow-x-auto xl:whitespace-nowrap xl:text-[15px] xl:[scrollbar-width:none] 2xl:gap-1 2xl:text-[18px]">
+              {/* Plain links (full page loads) so every tab shows current data, header included. */}
               {NAV.map((n) => (
-                <Link
+                <a
                   key={n.href}
                   href={n.href}
                   className="inline-flex items-center justify-center rounded-lg bg-zinc-100 px-2 py-2 text-center leading-tight text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900 xl:flex-none xl:justify-start xl:bg-transparent xl:px-2.5 xl:py-1.5 xl:text-left xl:text-zinc-600 2xl:px-3 dark:bg-zinc-800/70 dark:text-zinc-200 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 xl:dark:bg-transparent xl:dark:text-zinc-400"
@@ -67,7 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       {unread}
                     </span>
                   )}
-                </Link>
+                </a>
               ))}
             </nav>
           </div>
