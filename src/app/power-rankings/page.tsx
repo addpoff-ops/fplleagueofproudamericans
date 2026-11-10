@@ -52,17 +52,21 @@ const ordinal = (n: number) => {
  * Every team ranked by the total value of all rostered players, using the
  * original spreadsheet values (no trade-calculator scaling or discounts).
  * Two views (?basis=):
- *   site    (default) each player's value is their average across every
- *           rankings list on the site; players no list ranks count 0.
+ *   site    (default) each player's value is their average across the
+ *           rankings lists saved in the last SITE_LIST_MAX_AGE_DAYS days;
+ *           players none of those lists rank count 0.
  *   points  players ordered by this season's total fantasy points (league
  *           scoring), with tiers borrowed rank-for-rank from the official list,
  *           as in "Use Total Points" on Create your rankings.
  */
+/** Site rankings only count lists saved within this many days. */
+const SITE_LIST_MAX_AGE_DAYS = 3;
+
 export default async function PowerRankingsPage({ searchParams }: { searchParams: Promise<{ basis?: string }> }) {
   const basis = (await searchParams).basis === "points" ? "points" : "site";
   const [{ teams }, site, points, players] = await Promise.all([
     getLeagueData(),
-    basis === "site" ? consensusValues() : null,
+    basis === "site" ? consensusValues({ updatedWithinDays: SITE_LIST_MAX_AGE_DAYS }) : null,
     basis === "points" ? pointsValues() : null,
     getPlayers(),
   ]);
@@ -115,7 +119,9 @@ export default async function PowerRankingsPage({ searchParams }: { searchParams
       </div>
 
       {listCount === 0 ? (
-        <div className="card p-8 text-center text-sm text-zinc-500">No rankings lists yet.</div>
+        <div className="card p-8 text-center text-sm text-zinc-500">
+          No rankings list has been saved in the last {SITE_LIST_MAX_AGE_DAYS} days.
+        </div>
       ) : (
         <>
           {/* Legend */}

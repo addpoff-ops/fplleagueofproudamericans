@@ -133,8 +133,11 @@ export interface ConsensusValue {
  * original spreadsheet values (SHEET_TIER_VALUES). A list that doesn't rank a
  * player is left out of that player's average rather than counted as 0.
  */
-export async function consensusValues() {
+export async function consensusValues(opts: { updatedWithinDays?: number } = {}) {
+  const since = opts.updatedWithinDays ? new Date(Date.now() - opts.updatedWithinDays * 86_400_000) : undefined;
   const sets = await prisma.rankingSet.findMany({
+    // Optionally only lists saved recently (Power Rankings uses the last 3 days).
+    where: since ? { updatedAt: { gte: since } } : undefined,
     select: { isOfficial: true, entries: { select: { playerId: true, pos: true, tier: true } } },
   });
   const byPlayer = new Map<string, { pos: Pos; tier: Tier }[]>();
