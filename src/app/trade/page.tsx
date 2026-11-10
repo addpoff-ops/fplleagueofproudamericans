@@ -11,7 +11,10 @@ export default async function TradePage({ searchParams }: { searchParams: Promis
   const { rankings } = await searchParams;
   const [{ teams }, pool, sets, past] = await Promise.all([getLeagueData(), playerPool(), listRankingSets(), getPastTrades()]);
   const initialSlug =
-    rankings === POINTS_SLUG ? rankings : (sets.find((s) => s.slug === rankings)?.slug ?? AVERAGE_SLUG); // default: average of all lists
+    rankings === AVERAGE_SLUG || rankings === POINTS_SLUG
+      ? rankings
+      : // default: the official list (Addison's 2026-27 Rankings)
+        (sets.find((s) => s.slug === rankings) ?? sets.find((s) => s.isOfficial) ?? sets[0])?.slug;
 
   return (
     <>
