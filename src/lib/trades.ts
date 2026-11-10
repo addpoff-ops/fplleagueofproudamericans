@@ -15,8 +15,14 @@ export interface PastTrade {
 /** Every completed trade this season, newest first, from Sleeper's transactions. */
 export async function getPastTrades() {
   const league = await getLeague();
-  const weeks = Array.from({ length: Math.max(1, league.settings.leg) }, (_, i) => i + 1);
-  const all = (await Promise.all(weeks.map((w) => getTransactions(w)))).flat();
+  // Every gameweek so far plus the next one (Sleeper can file a trade under the
+  // upcoming week). Recent weeks are re-checked every minute so new trades show
+  // up quickly; older weeks every 5 minutes.
+  const current = Math.max(1, league.settings.leg);
+  const weeks = Array.from({ length: Math.min(38, current + 1) }, (_, i) => i + 1);
+  const all = (
+    await Promise.all(weeks.map((w) => getTransactions(w, undefined, w >= current - 1 ? 60 : 300).catch(() => [])))
+  ).flat();
   const trades: PastTrade[] = all
     .filter((t) => t.type === "trade" && t.status === "complete")
     .sort((a, b) => b.created - a.created)

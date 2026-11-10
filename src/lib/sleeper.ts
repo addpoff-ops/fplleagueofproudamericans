@@ -129,8 +129,8 @@ export interface SleeperTransaction {
   waiver_budget: { sender: number; receiver: number; amount: number }[] | null;
 }
 
-export const getTransactions = async (leg: number, id = LEAGUE_ID) =>
-  (await get<SleeperTransaction[] | null>(`/league/${id}/transactions/${leg}`)) ?? [];
+export const getTransactions = async (leg: number, id = LEAGUE_ID, revalidate = 300) =>
+  (await get<SleeperTransaction[] | null>(`/league/${id}/transactions/${leg}`, revalidate)) ?? [];
 
 export const getDraftPicks = (draftId: string) =>
   get<SleeperDraftPick[]>(`/draft/${draftId}/picks`, 3600);
